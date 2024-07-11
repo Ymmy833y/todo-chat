@@ -1,0 +1,12 @@
+
+spring:
+  application:
+    name: todo-chat
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/
+    username:
+    password:
+
+mybatis:
+  mapper-locations: classpath*:/db/mapper/*.xml

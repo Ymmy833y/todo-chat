@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  todo-chat:
+    image: mysql:8.0.34
+    volumes:
+      - todo_chat_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - 3306:3306
+    restart: always
+
+  todo-chat-test:
+    image: mysql:8.0.34
+    volumes:
+      - todo_chat_test_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - 3307:3306
+    restart: always
+
+volumes:
+  todo_chat_data:
+  todo_chat_test_data:
