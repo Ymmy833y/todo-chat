@@ -26,13 +26,12 @@ jobs:
           echo "TZ=Asia/Tokyo" >> $GITHUB_ENV
 
       - name: Set up Docker Compose
-        run: |
-          docker-compose -f webapp/docker-compose.yml up -d
+        run: docker-compose up -d
 
       - name: Wait for MySQL to be healthy
         run: |
           for i in {1..30}; do
-            if [ "$(docker inspect --format='{{.State.Health.Status}}' webapp_todo-chat-test_1)" == "healthy" ]; then
+            if [ "$(docker inspect --format='{{.State.Health.Status}}' todo-chat-test)" == "healthy" ]; then
               echo "MySQL is healthy"
               exit 0
             fi
@@ -40,7 +39,7 @@ jobs:
             sleep 2
           done
           echo "MySQL failed to become healthy"
-          docker logs webapp_todo-chat-test_1
+          docker logs todo-chat-test
           exit 1
 
       - name: Set up JDK 21
