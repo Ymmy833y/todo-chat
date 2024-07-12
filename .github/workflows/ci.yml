@@ -13,6 +13,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0.34
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: todo_chat
+          MYSQL_USER: todo_chat
+          MYSQL_PASSWORD: password
+          TZ: Asia/Tokyo
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -31,8 +48,20 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
 
+    - name: Set environment variables
+      run: |
+        echo "SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3307/todo_chat" >> $GITHUB_ENV
+        echo "SPRING_DATASOURCE_USERNAME=todo_chat" >> $GITHUB_ENV
+        echo "SPRING_DATASOURCE_PASSWORD=password" >> $GITHUB_ENV
+
+    - name: Wait for MySQL to be healthy
+      run: |
+        for i in {1..30}; do
+          docker inspect --format='{{.State.Health.Status}}' mysql | grep -q 'healthy' && break || sleep 2;
+        done
+
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package --file webapp/pom.xml
       working-directory: ./webapp
 
     - name: Run tests with Maven
