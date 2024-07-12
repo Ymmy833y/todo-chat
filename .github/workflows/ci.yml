@@ -13,26 +13,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0.34
-        ports:
-          - 3307:3306
-        options: >-
-          --health-cmd "mysqladmin ping -h localhost"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: todo_chat
-          MYSQL_USER: todo_chat
-          MYSQL_PASSWORD: password
-          TZ: Asia/Tokyo
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Set up Docker Compose
+      run: docker-compose up -d
+
+    - name: Wait for MySQL to be healthy
+      run: |
+        for i in {1..30}; do
+          if [ "$(docker inspect --format='{{.State.Health.Status}}' todo-chat-test)" == "healthy" ]; then
+            echo "MySQL is healthy"
+            exit 0
+          fi
+          echo "Waiting for MySQL to be healthy"
+          sleep 2
+        done
+        echo "MySQL failed to become healthy"
+        docker logs todo-chat-test
+        exit 1
 
     - name: Set up JDK 21
       uses: actions/setup-java@v3
@@ -53,12 +53,6 @@ jobs:
         echo "SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3307/todo_chat" >> $GITHUB_ENV
         echo "SPRING_DATASOURCE_USERNAME=todo_chat" >> $GITHUB_ENV
         echo "SPRING_DATASOURCE_PASSWORD=password" >> $GITHUB_ENV
-
-    - name: Wait for MySQL to be healthy
-      run: |
-        for i in {1..30}; do
-          docker inspect --format='{{.State.Health.Status}}' mysql | grep -q 'healthy' && break || sleep 2;
-        done
 
     - name: Build with Maven
       run: mvn -B package --file webapp/pom.xml
