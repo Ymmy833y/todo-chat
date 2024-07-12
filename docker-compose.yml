@@ -30,6 +30,11 @@ services:
     ports:
       - 3307:3306
     restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   todo_chat_data:
