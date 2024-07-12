@@ -2,6 +2,7 @@ version: "3"
 
 services:
   todo-chat:
+    container_name: todo-chat
     image: mysql:8.0.34
     volumes:
       - todo_chat_data:/var/lib/mysql
@@ -16,6 +17,7 @@ services:
     restart: always
 
   todo-chat-test:
+    container_name: todo-chat-test
     image: mysql:8.0.34
     volumes:
       - todo_chat_test_data:/var/lib/mysql
