@@ -3,7 +3,7 @@ name: CI
 
 on:
   push:
-    branches: 
+    branches:
       - master
   pull_request:
     branches:
@@ -14,50 +14,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Docker Compose
-      run: docker-compose up -d
+      - name: Set environment variables
+        run: |
+          echo "MYSQL_ROOT_PASSWORD=password" >> $GITHUB_ENV
+          echo "MYSQL_DATABASE=todo_chat" >> $GITHUB_ENV
+          echo "MYSQL_USER=todo_chat" >> $GITHUB_ENV
+          echo "MYSQL_PASSWORD=password" >> $GITHUB_ENV
+          echo "TZ=Asia/Tokyo" >> $GITHUB_ENV
 
-    - name: Wait for MySQL to be healthy
-      run: |
-        for i in {1..30}; do
-          if [ "$(docker inspect --format='{{.State.Health.Status}}' todo-chat-test)" == "healthy" ]; then
-            echo "MySQL is healthy"
-            exit 0
-          fi
-          echo "Waiting for MySQL to be healthy"
-          sleep 2
-        done
-        echo "MySQL failed to become healthy"
-        docker logs todo-chat-test
-        exit 1
+      - name: Set up Docker Compose
+        run: |
+          docker-compose -f webapp/docker-compose.yml up -d
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '21'
+      - name: Wait for MySQL to be healthy
+        run: |
+          for i in {1..30}; do
+            if [ "$(docker inspect --format='{{.State.Health.Status}}' webapp_todo-chat-test_1)" == "healthy" ]; then
+              echo "MySQL is healthy"
+              exit 0
+            fi
+            echo "Waiting for MySQL to be healthy"
+            sleep 2
+          done
+          echo "MySQL failed to become healthy"
+          docker logs webapp_todo-chat-test_1
+          exit 1
 
-    - name: Cache Maven packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/webapp/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
-    - name: Set environment variables
-      run: |
-        echo "SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3307/todo_chat" >> $GITHUB_ENV
-        echo "SPRING_DATASOURCE_USERNAME=todo_chat" >> $GITHUB_ENV
-        echo "SPRING_DATASOURCE_PASSWORD=password" >> $GITHUB_ENV
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/webapp/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-    - name: Build with Maven
-      run: mvn -B package --file webapp/pom.xml
-      working-directory: ./webapp
+      - name: Set application environment variables
+        run: |
+          echo "SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3307/todo_chat" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=todo_chat" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_PASSWORD=password" >> $GITHUB_ENV
 
-    - name: Run tests with Maven
-      run: mvn test
-      working-directory: ./webapp
+      - name: Build with Maven
+        run: mvn -B package --file webapp/pom.xml
+        working-directory: ./webapp
+
+      - name: Run tests with Maven
+        run: mvn test
+        working-directory: ./webapp
