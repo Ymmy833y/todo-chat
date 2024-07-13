@@ -24,6 +24,7 @@ jobs:
           echo "MYSQL_USER=todo_chat" >> $GITHUB_ENV
           echo "MYSQL_PASSWORD=password" >> $GITHUB_ENV
           echo "TZ=Asia/Tokyo" >> $GITHUB_ENV
+          echo "APP_VERSION=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
 
       - name: Set up Docker Compose
         run: docker-compose up -d
@@ -64,9 +65,9 @@ jobs:
           echo "SPRING_DATASOURCE_PASSWORD=password" >> $GITHUB_ENV
 
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package --file pom.xml -Dapp.version=${{ env.APP_VERSION }}
         working-directory: ./webapp
 
       - name: Run tests with Maven
-        run: mvn test
+        run: mvn test -Dapp.version=${{ env.APP_VERSION }}
         working-directory: ./webapp
