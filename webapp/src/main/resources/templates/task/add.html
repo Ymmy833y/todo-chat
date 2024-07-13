@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>ToDo | Home</title>
+  <link crossorigin="anonymous" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+        rel="stylesheet"
+        th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+</head>
+<body>
+<th:block th:include="fragments/header::header (currentUrl=${taskCreateDetailDto.currentUrl})"/>
+<main>
+  <div class="container">
+    <div class="my-3 mt-4">
+      <h2 class="fs-4 mb-3">タスク新規作成</h2>
+    </div>
+    <hr/>
+    <form method="post" th:action="@{/task/create}" th:object="${taskCreateForm}">
+      <div class="alert alert-danger" role="alert" th:if="${exception}">
+        <span th:text="${exception}"></span>
+      </div>
+      <div class="row mb-3">
+        <label class="col-md-2 col-form-label" for="task_title">タイトル</label>
+        <div class="col-md-10">
+          <input class="form-control" id="task_title"
+                 name="title" th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                 th:field="*{title}" type="text">
+          <div class="text-danger" th:errors="*{title}" th:if="${#fields.hasErrors('title')}"></div>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label class="col-md-2 col-form-label" for="task_start_date_time"
+               th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'">開始日時</label>
+        <div class="col-md-10">
+          <input class="form-control" id="task_start_date_time"
+                 name="startDateTime"
+                 th:classappend="${#fields.hasErrors('startDateTime')} ? 'is-invalid'" th:field="*{startDateTime}" type="datetime-local">
+          <div class="text-danger" th:errors="*{startDateTime}"
+               th:if="${#fields.hasErrors('startDateTime')}"></div>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label class="col-md-2 col-form-label" for="task_end_date_time">終了日時</label>
+        <div class="col-md-10">
+          <input class="form-control" id="task_end_date_time"
+                 name="endDateTime"
+                 th:classappend="${#fields.hasErrors('endDateTime')} ? 'is-invalid'" th:field="*{endDateTime}" type="datetime-local">
+          <div class="text-danger" th:errors="*{endDateTime}"
+               th:if="${#fields.hasErrors('endDateTime')}"></div>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label class="col-md-2 col-form-label" for="task_description">説明</label>
+        <div class="col-md-10">
+          <textarea class="form-control" id="task_description"
+                    name="description"
+                    rows="5" th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'" th:field="*{description}"></textarea>
+          <div class="text-danger" th:errors="*{description}"
+               th:if="${#fields.hasErrors('description')}"></div>
+        </div>
+      </div>
+      <div class="text-end mt-4">
+        <button class="btn btn-primary w-25" type="submit">作成</button>
+        <button class="btn btn-secondary w-25" id="cancelBtn" type="button">キャンセル</button>
+      </div>
+    </form>
+  </div>
+</main>
+<th:block th:replace="fragments/footer::footer"/>
+<script crossorigin="anonymous" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  $("#cancelBtn").click(function() {
+      window.location.href = "/task";
+  });
+  /*]]>*/
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+html, body {
+  height: 100%;
+}
+
+body > footer {
+  position: sticky;
+  top: 100vh;
+}
+
+th.table-min-width, td.table-min-width {
+  width: 1px;
+  white-space: nowrap;
+}
+
+.pre-wrap {
+  white-space: pre-wrap; /* CSSで改行文字を表示 */
+}
