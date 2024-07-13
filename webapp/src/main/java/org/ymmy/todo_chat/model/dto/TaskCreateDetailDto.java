@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TaskCreateDetailDto implements Serializable {
 
+  @Builder.Default
   private String currentUrl = "/task/add";
 
 }
