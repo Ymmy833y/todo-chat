@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>ToDo x Chat | Login</title>
+  <link crossorigin="anonymous" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+        rel="stylesheet"
+        th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+</head>
+<body>
+<header class="container">
+  <div class="d-flex flex-wrap justify-content-between pt-3">
+    <a class="d-flex align-items-center mb-md-0 me-md-auto link-body-emphasis text-decoration-none"
+       href="/home">
+      <h1 class="display-6 mb-0">Todo x Chat</h1>
+    </a>
+  </div>
+  <hr/>
+</header>
+<main class="position-absolute top-50 start-50 translate-middle w-100">
+  <div class="container text-center">
+    <form class="p-4 shadow" method="post" th:action="@{/login}" th:object="${loginForm}">
+      <div class="my-5">
+        <h2>Please login</h2>
+      </div>
+      <div class="form-floating mb-4">
+        <input class="form-control" id="userName"
+               th:classappend="${#fields.hasErrors('userName')} or ${exception != null} ? 'is-invalid' : ''"
+               th:field="*{userName}" type="text">
+        <label for="userName">user name</label>
+        <div class="text-danger" th:errors="*{userName}" th:if="${#fields.hasErrors('userName')}"></div>
+        <div class="text-danger" th:if="${exception}" th:text="${exception}"></div>
+      </div>
+      <div class="my-3">
+        <button class="w-50 btn btn-lg btn-secondary" type="submit">Login</button>
+      </div>
+    </form>
+  </div>
+</main>
+<th:block th:replace="fragments/footer :: footer"></th:block>
+<script crossorigin="anonymous" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
