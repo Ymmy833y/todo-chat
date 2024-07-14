@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.ymmy.todo_chat.exception.BadRequestException;
+import org.ymmy.todo_chat.exception.InvalidCredentialsException;
 import org.ymmy.todo_chat.model.dto.LoginDto;
 import org.ymmy.todo_chat.repository.UserRepository;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
@@ -33,12 +34,13 @@ public class UserService {
    * セッションに正しいuserIdが含まれているか検証
    *
    * @param session {@link HttpSession}
+   * @return ユーザーID
    */
-  public void isAuthenticated(final HttpSession session) {
+  public Long isAuthenticated(final HttpSession session) {
     final Long userId = (Long) session.getAttribute("userId");
     if (userId != null && userRepository.selectById(userId) != null) {
-      return;
+      return userId;
     }
-    throw new BadRequestException(ErrorMessageEnum.CLEARED_SESSION);
+    throw new InvalidCredentialsException(ErrorMessageEnum.CLEARED_SESSION);
   }
 }

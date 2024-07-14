@@ -14,15 +14,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.ymmy.todo_chat.exception.BadRequestException;
+import org.ymmy.todo_chat.exception.InvalidCredentialsException;
 import org.ymmy.todo_chat.model.form.LoginForm;
 import org.ymmy.todo_chat.service.UserService;
 
 @Controller
 @AllArgsConstructor
-@RequestMapping("/login")
+@RequestMapping("")
 public class LoginController {
 
   private final UserService userService;
+
+  /**
+   * ログイン画面を表示します
+   *
+   * @return ログイン画面
+   */
+  @GetMapping("/")
+  public ModelAndView index() {
+    return new ModelAndView("redirect:/login");
+  }
 
   /**
    * ログイン画面を表示します
@@ -31,11 +42,11 @@ public class LoginController {
    * @param session {@link HttpSession}
    * @return ログイン済みの場合はホーム画面、ログインしていない場合はログイン画面
    */
-  @GetMapping("")
+  @GetMapping("/login")
   public ModelAndView login(final Model model, final HttpSession session) {
     try {
       userService.isAuthenticated(session);
-    } catch (BadRequestException e) {
+    } catch (InvalidCredentialsException e) {
       final var modelAndView = new ModelAndView("login");
       modelAndView.addObject("loginForm", new LoginForm());
       modelAndView.addAllObjects(model.asMap());
@@ -56,7 +67,7 @@ public class LoginController {
    * @param request            {@link HttpServletRequest}
    * @return ログインチェックに成功した場合ホーム画面、失敗した場合はログイン画面
    */
-  @PostMapping("")
+  @PostMapping("/login")
   public ModelAndView login(@Valid @ModelAttribute final LoginForm loginForm,
       final BindingResult bindingResult, final Model model,
       final RedirectAttributes redirectAttributes, final HttpServletRequest request) {
@@ -79,5 +90,17 @@ public class LoginController {
     }
 
     return redirectModelAndView;
+  }
+
+  /**
+   * ログアウトします
+   *
+   * @param session {@link HttpSession}
+   * @return ログイン画面
+   */
+  @PostMapping("/logout")
+  public ModelAndView logout(final HttpSession session) {
+    session.invalidate();
+    return new ModelAndView("redirect:/login");
   }
 }
