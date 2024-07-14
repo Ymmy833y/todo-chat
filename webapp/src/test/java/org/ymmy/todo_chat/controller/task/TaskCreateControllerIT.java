@@ -14,10 +14,6 @@ import com.ninja_squad.dbsetup.DbSetup;
 import com.ninja_squad.dbsetup.Operations;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.generator.ValueGenerators;
-import com.ninja_squad.dbsetup.operation.SqlOperation;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +28,7 @@ import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.model.form.TaskCreateForm;
 import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
+import org.ymmy.todo_chat.utils.DatabaseUtils;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,9 +43,7 @@ public class TaskCreateControllerIT {
   private TaskRepository taskRepository;
 
   @BeforeEach
-  void setUp() throws IOException {
-    final var deleteAll = SqlOperation.of(new String(
-        Files.readAllBytes(Paths.get("src/test/resources/db/deleteAll.sql"))));
+  void setUp() throws Exception {
 
     final var taskOperation = Operations.insertInto("task")
         .withGeneratedValue("id", ValueGenerators.sequence().startingAt(1))
@@ -63,8 +58,9 @@ public class TaskCreateControllerIT {
         .withDefaultValue("created_by", 1L) //
         .build();
 
+    DatabaseUtils.executeSqlFile(dataSource, "src/test/resources/db/deleteAll.sql");
     final var dbSetup = new DbSetup(new DataSourceDestination(dataSource),
-        sequenceOf(deleteAll, taskOperation));
+        sequenceOf(taskOperation));
     dbSetup.launch();
   }
 
