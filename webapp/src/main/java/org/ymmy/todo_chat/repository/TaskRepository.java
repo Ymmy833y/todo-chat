@@ -1,6 +1,7 @@
 package org.ymmy.todo_chat.repository;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.ymmy.todo_chat.db.entity.Task;
@@ -24,6 +25,17 @@ public class TaskRepository {
   }
 
   /**
+   * 指定したタスクが存在する且つログインユーザーに権限がある場合タスクを取得する
+   *
+   * @param taskId タスクID
+   * @param userId ユーザーID
+   * @return タスク
+   */
+  public Optional<TaskEntity> selectEntityByTaskIdAndUserId(final Long taskId, final Long userId) {
+    return Optional.ofNullable(taskCustomMapper.selectEntityByTaskIdAndUserId(taskId, userId));
+  }
+
+  /**
    * 検索条件に一致するタスク一覧を取得する
    *
    * @param taskSearchDto {@link TaskSearchDto} 検索条件
@@ -36,6 +48,11 @@ public class TaskRepository {
   public Long insert(final Task task) {
     taskCustomMapper.insertSelective(task);
     return task.getId();
+  }
+
+  public void update(final Task task, final Long userId) {
+    task.setCreatedBy(userId);
+    taskCustomMapper.updateByPrimaryKeySelective(task);
   }
 
 }

@@ -1,13 +1,20 @@
 package org.ymmy.todo_chat.service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.exception.BadRequestException;
+import org.ymmy.todo_chat.logic.TaskLogic;
+import org.ymmy.todo_chat.model.dto.TaskCompleteDto;
 import org.ymmy.todo_chat.model.dto.TaskCreateDetailDto;
 import org.ymmy.todo_chat.model.dto.TaskCreateDto;
+import org.ymmy.todo_chat.model.dto.TaskDetailDto;
+import org.ymmy.todo_chat.model.dto.TaskDto;
+import org.ymmy.todo_chat.model.dto.TaskEditDto;
 import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
 
@@ -15,7 +22,10 @@ import org.ymmy.todo_chat.util.ErrorMessageEnum;
 @RequiredArgsConstructor
 public class TaskService {
 
+  private final TaskLogic taskLogic;
   private final TaskRepository taskRepository;
+
+  private final String DETAIL_MESSAGE_FORMAT = "このタスクは、%sです。";
 
   /**
    * タスク新規作成画面の詳細情報を取得します
@@ -27,7 +37,23 @@ public class TaskService {
   }
 
   /**
-   * タスクをDB登録します
+   * タスク詳細画面の詳細情報を取得します
+   *
+   * @param taskId タスクID
+   * @param userId ユーザーID
+   * @return {@link TaskDetailDto}
+   */
+  public TaskDetailDto getTaskDetailDto(final Long taskId, final Long userId) {
+    final var taskDto = taskLogic.getTaskDto(taskId, userId);
+    return TaskDetailDto.builder()
+        .taskDto(taskDto) //
+        .statusDtoList(taskLogic.getTaskStatusDtoList()) //
+        .detailMessages(generateDetailMessages(taskDto)) //
+        .build();
+  }
+
+  /**
+   * タスクを登録します
    *
    * @param dto {@link TaskCreateDto}
    * @return 登録されたTaskのID
@@ -36,6 +62,32 @@ public class TaskService {
   public Long create(final TaskCreateDto dto) {
     verifyForCreate(dto);
     return taskRepository.insert(convertToTask(dto));
+  }
+
+  /**
+   * タスクを更新します
+   *
+   * @param dto    {@link TaskEditDto}
+   * @param userId ユーザーID
+   */
+  @Transactional
+  public void update(final TaskEditDto dto, final Long userId) {
+    verifyForUpdate(dto, userId);
+
+    taskRepository.update(convertToTask(dto), userId);
+  }
+
+  /**
+   * タスクのステータスを更新します
+   *
+   * @param dto    {@link TaskCompleteDto}
+   * @param userId ユーザーID
+   */
+  @Transactional
+  public void updateStatus(final TaskCompleteDto dto, final Long userId) {
+    verifyForUpdateStatus(dto, userId);
+
+    taskRepository.update(convertToTask(dto), userId);
   }
 
   /**
@@ -50,6 +102,30 @@ public class TaskService {
   }
 
   /**
+   * タスク更新時の検証
+   *
+   * @param dto    {@link TaskEditDto}
+   * @param userId ユーザーID
+   */
+  private void verifyForUpdate(final TaskEditDto dto, final Long userId) {
+    taskLogic.getTaskDto(dto.getTaskId(), userId); // 操作権限の検証
+
+    if (isInvalidPeriod(dto.getStartDateTime(), dto.getEndDateTime())) {
+      throw new BadRequestException(ErrorMessageEnum.INVALID_PERIOD);
+    }
+  }
+
+  /**
+   * タスクステータス更新時の検証
+   *
+   * @param dto    {@link TaskCompleteDto}
+   * @param userId ユーザーID
+   */
+  private void verifyForUpdateStatus(final TaskCompleteDto dto, final Long userId) {
+    taskLogic.getTaskDto(dto.getTaskId(), userId); // 操作権限の検証
+  }
+
+  /**
    * 登録された期間の検証
    *
    * @param startDateTime 開始日時
@@ -61,6 +137,24 @@ public class TaskService {
     return startDateTime.isAfter(endDateTime);
   }
 
+  /**
+   * タスク詳細画面に表示するメッセージを生成します
+   *
+   * @param taskDto {@link TaskDto}
+   * @return メッセージ
+   */
+  private Map<String, String> generateDetailMessages(final TaskDto taskDto) {
+    final var taskStatus = taskDto.getTaskStatusDto();
+    final var detailMessages = new HashMap<String, String>();
+
+    if (taskStatus.getStatusId() == 3L) {
+      detailMessages.put("success", String.format(DETAIL_MESSAGE_FORMAT, taskStatus.getRemarks()));
+    } else {
+      detailMessages.put("warning", String.format(DETAIL_MESSAGE_FORMAT, taskStatus.getRemarks()));
+    }
+    return detailMessages;
+  }
+
   private Task convertToTask(final TaskCreateDto dto) {
     return new Task() //
         .withStatusId(1L) //
@@ -69,5 +163,21 @@ public class TaskService {
         .withEndDateTime(dto.getEndDateTime()) //
         .withDescription(dto.getDescription()) //
         .withCreatedBy(1L);
+  }
+
+  private Task convertToTask(final TaskEditDto dto) {
+    return new Task() //
+        .withId(dto.getTaskId()) //
+        .withStatusId(dto.getStatusId()) //
+        .withTitle(dto.getTitle()) //
+        .withStartDateTime(dto.getStartDateTime()) //
+        .withEndDateTime(dto.getEndDateTime()) //
+        .withDescription(dto.getDescription());
+  }
+
+  private Task convertToTask(final TaskCompleteDto dto) {
+    return new Task() //
+        .withId(dto.getTaskId()) //
+        .withStatusId(dto.getStatusId());
   }
 }

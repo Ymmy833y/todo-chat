@@ -73,4 +73,17 @@
         LIMIT #{searchDto.includeStartPosition}, #{searchDto.includeCount}
       </if>
   </select>
+
+  <select id="selectEntityByTaskIdAndUserId" parameterType="map" resultMap="TaskEntityResultMap">
+    SELECT
+      <include refid="TaskColumns" />,
+      <include refid="org.ymmy.todo_chat.db.mapper.TaskStatusCustomMapper.TaskStatusColumns" />
+    FROM
+      task
+      INNER JOIN task_status ON task_status.id = task.status_id
+    WHERE
+      task.id = #{taskId}
+      AND task.created_by = #{userId}
+  </select>
+
 </mapper>

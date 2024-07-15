@@ -4,12 +4,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.ymmy.todo_chat.exception.NotFoundException;
 import org.ymmy.todo_chat.model.dto.TaskDto;
 import org.ymmy.todo_chat.model.dto.TaskSearchDto;
 import org.ymmy.todo_chat.model.dto.TaskStatusDto;
 import org.ymmy.todo_chat.model.entity.TaskEntity;
 import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.repository.TaskStatusRepository;
+import org.ymmy.todo_chat.util.ErrorMessageEnum;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +29,22 @@ public class TaskLogic {
   public List<TaskDto> getTaskDtoList(final TaskSearchDto taskSearchDto) {
     final var taskEntities = taskRepository.selectAllBySearchCriteria(taskSearchDto);
     return taskEntities.stream().map(this::convertToTaskDto).toList();
+  }
+
+  /**
+   * 指定したタスクが存在する且つログインユーザーに権限がある場合タスクを取得する
+   *
+   * @param taskId タスクID
+   * @param userId ユーザーID
+   * @return {@link TaskDto}
+   */
+  public TaskDto getTaskDto(final Long taskId, final Long userId) {
+    final var taskEntityOptional = taskRepository.selectEntityByTaskIdAndUserId(taskId, userId);
+    if (taskEntityOptional.isEmpty()) {
+      throw new NotFoundException(ErrorMessageEnum.NON_EXISTENT_DATA);
+    }
+
+    return convertToTaskDto(taskEntityOptional.get());
   }
 
   /**
@@ -59,6 +77,11 @@ public class TaskLogic {
         .withNano(0);
   }
 
+  /**
+   * 全てのタスクステータスを取得します
+   *
+   * @return {@link TaskStatusDto} のリスト
+   */
   public List<TaskStatusDto> getTaskStatusDtoList() {
     return taskStatusRepository.selectAll().stream().map(TaskStatusDto::new).toList();
   }

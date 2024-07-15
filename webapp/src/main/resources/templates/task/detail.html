@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title th:text="${'Todo x Chat | ' + taskDetailDto.taskDto.title}"></title>
+  <link crossorigin="anonymous" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+        rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+</head>
+<body>
+<th:block th:include="fragments/header::header (currentUrl=${taskDetailDto.currentUrl})"/>
+<main>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="check-circle" viewBox="0 0 16 16">
+      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+      <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+    </symbol>
+    <symbol id="pencil" viewBox="0 0 16 16">
+      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+    </symbol>
+    <symbol id="journal" viewBox="0 0 16 16">
+      <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/>
+      <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/>
+    </symbol>
+  </svg>
+  <div class="container py-3">
+    <div class="d-flex justify-content-between">
+      <div class="d-flex align-items-center">
+        <div class="fs-3 flex-shrink-0 me-2">
+            <span th:text="${taskDetailDto.taskDto.taskStatusDto.name}" class="badge text-dark border"
+                  th:style="'background-color: #' + ${taskDetailDto.taskDto.taskStatusDto.colorCode}"></span>
+        </div>
+        <div class="small lh-sm">
+          <h3 class="text-gray-dark mb-0" th:text="${taskDetailDto.taskDto.title}"></h3>
+        </div>
+      </div>
+      <div th:replace="fragments/completeTask::completeTask (taskCompleteForm=${taskCompleteForm})"></div>
+    </div>
+    <hr>
+    <ul class="nav nav-tabs d-flex justify-content-end" role="tablist">
+      <li class="nav-item me-1" role="presentation">
+        <button class="nav-link" id="detail-tab" data-bs-toggle="tab"
+                data-bs-target="#detail" type="button" role="tab" aria-controls="detail"
+                th:attr="aria-selected=${isSelectEdit == null || !isSelectEdit ? true : false}"
+                th:classappend="${isSelectEdit == null || !isSelectEdit} ? 'show active'">
+          <span>詳細</span>
+          <svg class="bi ms-2" width="24" height="24" fill="currentColor">
+            <use xlink:href="#journal"></use>
+          </svg>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit"
+                type="button" role="tab" aria-controls="edit"
+                th:attr="aria-selected=${isSelectEdit != null && !isSelectEdit ? true : false}"
+                th:classappend="${isSelectEdit != null && isSelectEdit} ? 'active'">
+          <span>編集</span>
+          <svg class="bi ms-2" width="24" height="24" fill="currentColor">
+            <use xlink:href="#pencil"></use>
+          </svg>
+        </button>
+      </li>
+    </ul>
+    <div class="tab-content mt-3">
+      <div class="tab-pane fade" id="detail" role="tabpanel"
+           aria-labelledby="detail-tab"
+           th:classappend="${isSelectEdit == null || !isSelectEdit} ? 'show active'">
+        <div class="alert" role="alert" th:each="message : ${taskDetailDto.detailMessages}"
+             th:classappend="${'alert-' + message.key}" th:text="${message.value}"></div>
+        <div class="row pt-3">
+          <strong class="col-3 col-md-2 p-2">ステータス</strong>
+          <div class="col-9 col-md-10 d-flex align-items-center">
+            <div class="fs-5">
+            <span th:text="${taskDetailDto.taskDto.taskStatusDto.name}"
+                  class="badge text-dark border"
+                  th:style="'background-color: #' + ${taskDetailDto.taskDto.taskStatusDto.colorCode}"></span>
+            </div>
+          </div>
+        </div>
+        <div class="row pt-3">
+          <strong class="col-3 col-md-2 p-2">開始日時</strong>
+          <span class="col-9 col-md-4 p-2"
+                th:text="${@viewUtil.formatDate(taskDetailDto.taskDto.startDateTime)}">07/12 00:00</span>
+          <strong class="col-3 col-md-2 p-2 mt-3 mt-md-0">終了日時</strong>
+          <span class="col-9 col-md-4 p-2 mt-3 mt-md-0"
+                th:text="${@viewUtil.formatDate(taskDetailDto.taskDto.endDateTime)}">07/12 23:00</span>
+        </div>
+        <div class="row pt-3">
+          <strong class="col-3 col-md-2 p-2">説明</strong>
+          <span class="col-9 col-md-10 p-2 pre-wrap"
+                th:text="${taskDetailDto.taskDto.description}"></span>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="edit" role="tabpanel" aria-labelledby="edit-tab"
+           th:classappend="${isSelectEdit != null && isSelectEdit} ? 'show active'">
+        <form method="post" th:action="@{/task/update/{taskId}(taskId=${taskId})}"
+              th:object="${taskEditForm}">
+          <div th:if="${exception}" class="alert alert-danger" role="alert">
+            <span th:text="${exception}"></span>
+          </div>
+          <div class="row mb-3">
+            <label for="task_title" class="col-sm-2 col-form-label">タイトル</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control"
+                     th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'" id="task_title"
+                     name="title" th:field="*{title}">
+              <div class="text-danger" th:if="${#fields.hasErrors('title')}"
+                   th:errors="*{title}"></div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="task_status" class="col-sm-2 col-form-label">ステータス</label>
+            <div class="col-sm-10">
+              <select id="task_status" name="statusId" class="form-select" th:field="*{statusId}">
+                <th:block th:each="status : ${taskDetailDto.statusDtoList}">
+                  <option th:value="${status.statusId}" th:text="${status.name}"
+                          th:selected="${statusId == status.statusId}"></option>
+                </th:block>
+              </select>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="task_start_date_time" class="col-sm-2 col-form-label"
+                   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'">開始日時</label>
+            <div class="col-sm-10">
+              <input type="datetime-local" class="form-control"
+                     th:classappend="${#fields.hasErrors('startDateTime')} ? 'is-invalid'"
+                     id="task_start_date_time" name="startDateTime" th:field="*{startDateTime}">
+              <div class="text-danger" th:if="${#fields.hasErrors('startDateTime')}"
+                   th:errors="*{startDateTime}"></div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="task_end_date_time" class="col-sm-2 col-form-label">終了日時</label>
+            <div class="col-sm-10">
+              <input type="datetime-local" class="form-control"
+                     th:classappend="${#fields.hasErrors('endDateTime')} ? 'is-invalid'"
+                     id="task_end_date_time" name="endDateTime" th:field="*{endDateTime}">
+              <div class="text-danger" th:if="${#fields.hasErrors('endDateTime')}"
+                   th:errors="*{endDateTime}"></div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="task_description" class="col-sm-2 col-form-label">説明</label>
+            <div class="col-sm-10">
+            <textarea class="form-control" id="task_description"
+                      th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                      name="description" th:field="*{description}" rows="5"></textarea>
+              <div class="text-danger" th:if="${#fields.hasErrors('description')}"
+                   th:errors="*{description}"></div>
+            </div>
+          </div>
+          <input type="hidden" th:field="*{taskId}"/>
+          <div class="text-end mt-4">
+            <button type="submit" class="btn btn-primary w-25">更新</button>
+            <button type="button" class="btn btn-secondary w-25" id="cancelBtn">キャンセル</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+<th:block th:replace="fragments/footer::footer"/>
+<script crossorigin="anonymous" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  $(document).ready(function() {
+    $('#cancelBtn').click(function() {
+      const taskId = /*[[${taskId}]]*/ undefined;
+      if (taskId !== undefined) {
+        const url = '/task/detail/' + taskId;
+        window.location.href = url;
+      } else {
+        window.location.href = '/home';
+      }
+    });
+  });
+  /*]]>*/
+</script>
+</body>
+</html>
