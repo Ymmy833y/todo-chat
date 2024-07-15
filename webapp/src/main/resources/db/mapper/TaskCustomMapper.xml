@@ -69,8 +69,49 @@
       </if>
     ORDER BY
       task.id
-      <if test="searchDto.includeCount != null">
-        LIMIT #{searchDto.includeStartPosition}, #{searchDto.includeCount}
+    <if test="searchDto.includeStartPosition != null and searchDto.includeCount != null">
+      LIMIT
+        ${(searchDto.includeStartPosition > 1 ? (searchDto.includeStartPosition - 1) * searchDto.includeCount : 0)},
+        #{searchDto.includeCount}
+    </if>
+  </select>
+
+  <select id="selectCountBySearchCriteria" parameterType="org.ymmy.todo_chat.model.dto.TaskSearchDto" resultType="long">
+    SELECT
+      COUNT(*)
+    FROM
+      task
+      INNER JOIN task_status ON task_status.id = task.status_id
+    WHERE 1 = 1
+      <if test="searchDto.excludedStatus != null and !searchDto.excludedStatus.isEmpty()">
+        AND task.status_id NOT IN
+        <foreach item="status" index="index" collection="searchDto.excludedStatus" open="(" separator="," close=")">
+          #{status}
+        </foreach>
+      </if>
+      <if test="searchDto.includeStatus != null and !searchDto.includeStatus.isEmpty()">
+        AND task.status_id IN
+        <foreach item="status" index="index" collection="searchDto.includeStatus" open="(" separator="," close=")">
+          #{status}
+        </foreach>
+      </if>
+      <if test="searchDto.startDateTimeFrom != null">
+        AND task.start_date_time &gt;= #{searchDto.startDateTimeFrom}
+      </if>
+      <if test="searchDto.startDateTimeTo != null">
+        AND task.start_date_time &lt;= #{searchDto.startDateTimeTo}
+      </if>
+      <if test="searchDto.endDateTimeFrom != null">
+        AND task.end_date_time &gt;= #{searchDto.endDateTimeFrom}
+      </if>
+      <if test="searchDto.endDateTimeTo != null">
+        AND task.end_date_time &lt;= #{searchDto.endDateTimeTo}
+      </if>
+      <if test="searchDto.includeTitle != null and searchDto.includeTitle != ''">
+        AND task.title LIKE CONCAT('%', #{searchDto.includeTitle}, '%')
+      </if>
+      <if test="searchDto.includeCreatedBy != null and searchDto.includeCreatedBy != ''">
+        AND task.created_by = #{searchDto.includeCreatedBy}
       </if>
   </select>
 

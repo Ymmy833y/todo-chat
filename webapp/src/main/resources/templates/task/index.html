@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo x Chat | Task</title>
+  <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+        crossorigin="anonymous">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+</head>
+<body>
+<th:block th:replace="fragments/header::header (currentUrl=${taskListDto.currentUrl})"/>
+<svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="triangle" viewBox="0 0 16 16">
+    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+  </symbol>
+</svg>
+<main class="container">
+  <div class="my-3 mt-4">
+    <h2 class="fs-4 mb-3">タスク一覧</h2>
+  </div>
+  <hr>
+  <div class="card card-body p-3">
+    <form th:action="@{/task/search}" th:object="${taskSearchForm}" method="post" id="taskSearchForm">
+      <div class="row">
+        <div class="col-12 mb-3">
+          <label for="includeTitle" class="form-label">タイトル</label>
+          <input type="text" class="form-control" id="includeTitle" th:field="*{includeTitle}">
+        </div>
+      </div>
+      <div class="text-small">
+        <a class="d-flex align-items-start justify-content-end text-decoration-none"
+           data-bs-toggle="collapse" href="#detailSearch" aria-expanded="false" aria-controls="detailSearch">
+          <span>詳細検索</span>
+          <svg class="bi ms-1" fill="currentColor" height="24" width="24">
+            <use xlink:href="#triangle"></use>
+          </svg>
+        </a>
+      </div>
+      <div class="row collapse" id="detailSearch">
+        <div class="col-12">
+          <hr>
+        </div>
+        <div class="col-6 mb-3">
+          <label for="includeStatus" class="form-label">ステータス</label>
+          <select id="includeStatus" name="includeStatus" class="form-select" multiple th:field="*{includeStatus}">
+            <th:block th:each="status : ${taskListDto.statusDtoList}">
+              <option th:value="${status.statusId}" th:text="${status.name}"
+                      th:selected="${includeStatus != null and includeStatus.contains(status.statusId)}"></option>
+            </th:block>
+          </select>
+        </div>
+        <div class="col-6 mb-3">
+          <label for="excludedStatus" class="form-label">ステータス（除外）</label>
+          <select id="excludedStatus" name="excludedStatus" class="form-select" multiple th:field="*{excludedStatus}">
+            <th:block th:each="status : ${taskListDto.statusDtoList}">
+              <option th:value="${status.statusId}" th:text="${status.name}"
+                      th:selected="${excludedStatus != null and excludedStatus.contains(status.statusId)}"></option>
+            </th:block>
+          </select>
+        </div>
+        <div class="col-12 col-md-6 mb-3">
+          <label for="startDateTimeFrom" class="form-label">開始日時（以降）</label>
+          <input type="datetime-local" id="startDateTimeFrom" class="form-select" th:field="*{startDateTimeFrom}">
+        </div>
+        <div class="col-12 col-md-6 mb-3">
+          <label for="startDateTimeTo" class="form-label">開始日時（以前）</label>
+          <input type="datetime-local" id="startDateTimeTo" class="form-select" th:field="*{startDateTimeTo}">
+        </div>
+        <div class="col-12 col-md-6 mb-3">
+          <label for="endDateTimeFrom" class="form-label">終了日時（以降）</label>
+          <input type="datetime-local" id="endDateTimeFrom" class="form-select" th:field="*{endDateTimeFrom}">
+        </div>
+        <div class="col-12 col-md-6 mb-3">
+          <label for="endDateTimeTo" class="form-label">終了日時（以前）</label>
+          <input type="datetime-local" id="endDateTimeTo" class="form-select" th:field="*{endDateTimeTo}">
+        </div>
+      </div>
+      <input type="hidden" id="includeCount" th:field="*{includeCount}">
+      <input type="hidden" id="includeStartPosition" th:field="*{includeStartPosition}">
+      <div class="d-flex justify-content-center mt-3">
+        <button type="submit" class="btn btn-secondary w-25">検索</button>
+      </div>
+    </form>
+  </div>
+  <hr />
+  <div th:if="${#lists.isEmpty(taskListDto.taskDtoList)}" class="my-5">
+    <p class="d-flex align-items-center justify-content-center fs-4">
+      <span>検索内容に一致するタスクはありません。</span>
+      <svg class="bi ms-2" width="24" height="24" fill="currentColor">
+        <use xlink:href="#thumbs-up"></use>
+      </svg>
+    </p>
+  </div>
+  <div th:unless="${#lists.isEmpty(taskListDto.taskDtoList)}" class="d-flex justify-content-end">
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        <li th:each="page : ${taskListDto.paginationDto.pageList}" class="page-item"
+            th:classappend="${page.value} ? 'active'" th:attr="data-page-id=${page.key}">
+          <a class="page-link" th:text="${page.key}"></a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div th:unless="${#lists.isEmpty(taskListDto.taskDtoList)}" class="list-group list-group-flush">
+    <div th:each="taskDto : ${taskListDto.taskDtoList}" th:attr="data-task-id=${taskDto.taskId}"
+         class="task list-group-item list-group-item-action p-2 pt-3">
+      <div class="d-flex pb-2">
+        <div class="d-flex align-items-start fs-5 flex-shrink-0 me-2">
+              <span th:text="${taskDto.taskStatusDto.name}" class="badge text-dark border"
+                    th:style="'background-color: #' + ${taskDto.taskStatusDto.colorCode}"></span>
+        </div>
+        <div class="small lh-sm">
+          <h5 class="text-gray-dark" th:text="${taskDto.title}">タスクタイトル</h5>
+        </div>
+      </div>
+      <div class="pb-2 ps-4 small lh-sm">
+        <div class="row mb-1">
+          <div class="col-12 col-md-6 mb-1">
+            <strong class="me-2">期間</strong>
+            <span
+                th:text="${@viewUtil.formatDate(taskDto.startDateTime) + ' ～ ' + @viewUtil.formatDate(taskDto.endDateTime)}"></span>
+          </div>
+        </div>
+        <div th:text="${taskDto.description}"></div>
+      </div>
+    </div>
+  </div>
+  <div th:unless="${#lists.isEmpty(taskListDto.taskDtoList)}" class="d-flex justify-content-end">
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        <li th:each="page : ${taskListDto.paginationDto.pageList}" class="page-item"
+            th:classappend="${page.value} ? 'active'" th:attr="data-page-id=${page.key}">
+          <a class="page-link" th:text="${page.key}"></a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</main>
+<th:block th:replace="fragments/footer::footer"/>
+<script th:src="@{/js/bootstrap.bundle.min.js}" crossorigin="anonymous"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"></script>
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  $(document).ready(function() {
+    $('.task').click(function() {
+        const taskId = $(this).data('task-id');
+        window.location.href = '/task/detail/' + taskId;
+    });
+    $('.page-item').click(function() {
+        const pageId = $(this).data('page-id');
+        $("#includeStartPosition").val(pageId);
+        $("#taskSearchForm").submit();
+    });
+  });
+  /*]]>*/
+</script>
+</body>
+</html>

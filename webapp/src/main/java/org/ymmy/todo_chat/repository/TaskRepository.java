@@ -36,6 +36,16 @@ public class TaskRepository {
   }
 
   /**
+   * 検索条件に一致するタスク数を取得する
+   *
+   * @param taskSearchDto {@link TaskSearchDto} 検索条件
+   * @return タスク一覧
+   */
+  public Long selectCountBySearchCriteria(final TaskSearchDto taskSearchDto) {
+    return taskCustomMapper.selectCountBySearchCriteria(taskSearchDto);
+  }
+
+  /**
    * 検索条件に一致するタスク一覧を取得する
    *
    * @param taskSearchDto {@link TaskSearchDto} 検索条件
