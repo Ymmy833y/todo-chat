@@ -59,9 +59,9 @@ public class TaskService {
    * @return 登録されたTaskのID
    */
   @Transactional
-  public Long create(final TaskCreateDto dto) {
+  public Long create(final TaskCreateDto dto, final Long userId) {
     verifyForCreate(dto);
-    return taskRepository.insert(convertToTask(dto));
+    return taskRepository.insert(convertToTask(dto), userId);
   }
 
   /**
@@ -161,8 +161,7 @@ public class TaskService {
         .withTitle(dto.getTitle()) //
         .withStartDateTime(dto.getStartDateTime()) //
         .withEndDateTime(dto.getEndDateTime()) //
-        .withDescription(dto.getDescription()) //
-        .withCreatedBy(1L);
+        .withDescription(dto.getDescription());
   }
 
   private Task convertToTask(final TaskEditDto dto) {

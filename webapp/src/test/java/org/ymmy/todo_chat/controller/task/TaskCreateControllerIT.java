@@ -45,6 +45,16 @@ public class TaskCreateControllerIT {
   @BeforeEach
   void setUp() throws Exception {
 
+    final var userOperation = Operations.insertInto("user")
+        .withGeneratedValue("id", ValueGenerators.sequence().startingAt(1))
+        .withGeneratedValue("name", ValueGenerators.stringSequence("USER_").startingAt(1)) //
+        .withGeneratedValue("display_name",
+            ValueGenerators.stringSequence("DISPLAY_NAME_").startingAt(1)) //
+        .row() // id: 1
+        .end() //
+        .withDefaultValue("created_by", 1L) //
+        .build();
+
     final var taskOperation = Operations.insertInto("task")
         .withGeneratedValue("id", ValueGenerators.sequence().startingAt(1))
         .withGeneratedValue("title",
@@ -60,7 +70,7 @@ public class TaskCreateControllerIT {
 
     DatabaseUtils.executeSqlFile(dataSource, "src/test/resources/db/deleteAll.sql");
     final var dbSetup = new DbSetup(new DataSourceDestination(dataSource),
-        sequenceOf(taskOperation));
+        sequenceOf(userOperation, taskOperation));
     dbSetup.launch();
   }
 
@@ -74,10 +84,21 @@ public class TaskCreateControllerIT {
 
     @Test
     void タスク新規作成画面を表示できる() throws Exception {
-      mockMvc.perform(get("/task/add"))
+      final var userId = 1L;
+      mockMvc.perform(get("/task/add")
+              .sessionAttr("userId", userId))
           .andExpect(status().isOk())
           .andExpect(view().name("task/add"))
           .andExpect(model().attributeExists("taskCreateForm"));
+    }
+
+    @Test
+    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
+      final var userId = 99L;
+      mockMvc.perform(get("/task/add")
+              .sessionAttr("userId", userId))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/login"));
     }
   }
 
@@ -86,12 +107,14 @@ public class TaskCreateControllerIT {
 
     @Test
     void タスクを作成できる() throws Exception {
+      final var userId = 1L;
       final var form = generateTaskCreateForm( //
           LocalDateTime.of(2024, 1, 1, 0, 0, 0), //
           LocalDateTime.of(2024, 1, 2, 0, 0, 0) //
       );
 
       mockMvc.perform(post("/task/create")
+              .sessionAttr("userId", userId)
               .flashAttr("taskCreateForm", form))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/task/detail/2"));
@@ -100,7 +123,7 @@ public class TaskCreateControllerIT {
 
       final var expect = new Task(2L, 1L, "TITLE", LocalDateTime.of(2024, 1, 1, 0, 0, 0),
           LocalDateTime.of(2024, 1, 2, 0, 0, 0),
-          null, 1L, null, null, "DESCRIPTION");
+          null, userId, null, null, "DESCRIPTION");
 
       assertThat(actual) //
           .usingRecursiveComparison()  //
@@ -110,12 +133,14 @@ public class TaskCreateControllerIT {
 
     @Test
     void 開始日時が終了日時より後になっている場合タスクを作成できない() throws Exception {
+      final var userId = 1L;
       final var form = generateTaskCreateForm( //
           LocalDateTime.of(2024, 1, 2, 0, 0, 0), //
           LocalDateTime.of(2024, 1, 1, 0, 0, 0) //
       );
 
       mockMvc.perform(post("/task/create")
+              .sessionAttr("userId", userId)
               .flashAttr("taskCreateForm", form))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/task/add"))
@@ -125,6 +150,20 @@ public class TaskCreateControllerIT {
       final var actual = taskRepository.selectAll();
       assertThat(actual).hasSize(1);
     }
-  }
 
+    @Test
+    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
+      final var userId = 99L;
+      final var form = generateTaskCreateForm( //
+          LocalDateTime.of(2024, 1, 2, 0, 0, 0), //
+          LocalDateTime.of(2024, 1, 1, 0, 0, 0) //
+      );
+
+      mockMvc.perform(post("/task/create")
+              .sessionAttr("userId", userId)
+              .flashAttr("taskCreateForm", form))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/login"));
+    }
+  }
 }

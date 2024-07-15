@@ -45,7 +45,8 @@ public class TaskRepository {
     return taskCustomMapper.selectAllBySearchCriteria(taskSearchDto);
   }
 
-  public Long insert(final Task task) {
+  public Long insert(final Task task, final Long userId) {
+    task.setCreatedBy(userId);
     taskCustomMapper.insertSelective(task);
     return task.getId();
   }
