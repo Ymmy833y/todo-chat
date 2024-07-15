@@ -87,6 +87,20 @@ public class TaskRepositoryTest {
   }
 
   @Nested
+  class SelectCountBySearchCriteria {
+
+    @Test
+    void 検索条件に一致するタスク数を取得できる() {
+      final var searchDto = TaskSearchDto.builder()
+          .includeCreatedBy(1L) //
+          .build();
+      final var actual = taskRepository.selectCountBySearchCriteria(searchDto);
+
+      assertThat(actual).isEqualTo(5L);
+    }
+  }
+
+  @Nested
   class SelectAllBySearchCriteria {
 
     @Test

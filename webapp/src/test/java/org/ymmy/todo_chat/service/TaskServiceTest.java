@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.ymmy.todo_chat.exception.BadRequestException;
 import org.ymmy.todo_chat.logic.TaskLogic;
+import org.ymmy.todo_chat.model.dto.PaginationDto;
 import org.ymmy.todo_chat.model.dto.TaskCompleteDto;
 import org.ymmy.todo_chat.model.dto.TaskCreateDto;
 import org.ymmy.todo_chat.model.dto.TaskDetailDto;
@@ -167,6 +169,50 @@ public class TaskServiceTest {
           .taskId(taskId) //
           .statusId(3L) //
           .build();
+    }
+  }
+
+  @Nested
+  class GeneratePaginationDto {
+
+    @Test
+    void ページネーションDTOを生成できる() {
+      final var total = 50L;
+      final var split = 5L;
+      final var current = 5L;
+
+      final var actual = taskService.generatePaginationDto(total, split, current);
+
+      final var expectPageList = Map.of(
+          1L, false,
+          4L, false,
+          5L, true,
+          6L, false,
+          10L, false
+      );
+      final var expect = PaginationDto.builder() //
+          .currentPage(current) //
+          .pageList(expectPageList) //
+          .build();
+
+      assertThat(actual)
+          .usingRecursiveComparison()
+          .isEqualTo(expect);
+    }
+
+    @Test
+    void タスクの合計数が0の場合ページネーションDTOを生成できる() {
+      final var total = 0L;
+      final var split = 5L;
+      final var current = 5L;
+
+      final var actual = taskService.generatePaginationDto(total, split, current);
+
+      final var expect = PaginationDto.builder().build();
+
+      assertThat(actual)
+          .usingRecursiveComparison()
+          .isEqualTo(expect);
     }
   }
 

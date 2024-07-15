@@ -7,6 +7,8 @@ import org.ymmy.todo_chat.model.entity.TaskEntity;
 
 public interface TaskCustomMapper extends TaskMapper {
 
+  public Long selectCountBySearchCriteria(@Param("searchDto") final TaskSearchDto searchDto);
+
   public List<TaskEntity> selectAllBySearchCriteria(
       @Param("searchDto") final TaskSearchDto searchDto);
 
