@@ -6,3 +6,6 @@ spring:
     url: jdbc:mysql://localhost:3307/
     username:
     password:
+
+mybatis:
+  mapper-locations: classpath*:/db/mapper/*.xml

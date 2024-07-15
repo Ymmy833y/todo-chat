@@ -63,6 +63,7 @@ jobs:
           echo "SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3307/todo_chat" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_USERNAME=todo_chat" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=password" >> $GITHUB_ENV
+          echo "MYBATIS_MAPPER_LOCATIONS=classpath*:/db/mapper/*.xml" >> $GITHUB_ENV
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml -Dapp.version=${{ env.APP_VERSION }}
