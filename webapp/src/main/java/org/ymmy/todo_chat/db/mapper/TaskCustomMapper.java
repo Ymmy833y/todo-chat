@@ -9,4 +9,7 @@ public interface TaskCustomMapper extends TaskMapper {
 
   public List<TaskEntity> selectAllBySearchCriteria(
       @Param("searchDto") final TaskSearchDto searchDto);
+
+  public TaskEntity selectEntityByTaskIdAndUserId(
+      @Param("taskId") final Long taskId, @Param("userId") final Long userId);
 }

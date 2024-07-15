@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+<th:block th:fragment="error (code, message)">
+  <main class="position-absolute top-50 start-50 translate-middle w-100">
+    <div class="container text-center">
+      <h2 class="display-1" th:text="${code}"></h2>
+      <div class="mt-4" th:text="${message}"></div>
+    </div>
+  </main>
+</th:block>
+</body>
+</html>

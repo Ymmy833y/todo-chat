@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+<div th:fragment="completeTask (taskCompleteForm)">
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="check-circle" viewBox="0 0 16 16">
+      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+      <path
+          d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+    </symbol>
+  </svg>
+  <form method="post" th:object="${taskCompleteForm}"
+        th:action="@{/task/complete/{taskCompleteForm.taskId}(taskId=${taskCompleteForm.taskId})}"
+        id="completeTaskForm">
+    <div class="btn-group" role="group">
+      <input type="checkbox" class="btn-check" id="isComplete"
+             th:disabled="${taskCompleteForm.statusId == 3}"
+             th:checked="${taskCompleteForm.statusId == 3}">
+      <label class="btn btn-outline-success d-flex align-items-start" for="isComplete">
+        <svg class="bi md-0 me-md-2" width="24" height="24" fill="currentColor">
+          <use xlink:href="#check-circle"></use>
+        </svg>
+        <span class="d-none d-md-block"
+              th:text="${taskCompleteForm.statusId == 3 ? '完了' : '完了にする'}">完了にする</span>
+      </label>
+    </div>
+    <input type="hidden" name="taskId" th:value="${taskCompleteForm.taskId}">
+    <input type="hidden" name="statusId" value="3">
+  </form>
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(function() {
+      $("#isComplete").click(function() {
+        $("#completeTaskForm").submit();
+      });
+    });
+    /*]]>*/
+  </script>
+</div>
+</body>
+</html>

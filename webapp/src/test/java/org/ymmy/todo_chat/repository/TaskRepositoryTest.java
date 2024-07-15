@@ -257,6 +257,47 @@ public class TaskRepositoryTest {
     }
   }
 
+  @Nested
+  class SelectEntityByTaskIdAndUserId {
+
+    @Test
+    void 指定したタスクが存在する且つログインユーザーと作成者が同じ場合タスクを返す() {
+      final Long TASK_ID = 1L;
+      final Long USER_ID = 1L;
+
+      final var actual = taskRepository.selectEntityByTaskIdAndUserId(TASK_ID, USER_ID);
+      assertThat(actual).isNotEmpty();
+      final var expect = generetaTaskEntity(1L, 1L);
+
+      assertThat(actual.get())
+          .usingRecursiveComparison()
+          .ignoringFieldsMatchingRegexes("createdAt", "updatedAt", "version", "taskStatus")
+          .isEqualTo(expect);
+      assertThat(actual.get().getTaskStatus())
+          .usingRecursiveComparison()
+          .ignoringFieldsMatchingRegexes("createdAt", "createdBy")
+          .isEqualTo(expect.getTaskStatus());
+    }
+
+    @Test
+    void タスクが存在するがログインユーザーと作成者が異なる場合OptionalEmptyを返す() {
+      final Long TASK_ID = 1L;
+      final Long USER_ID = 2L;
+
+      final var actual = taskRepository.selectEntityByTaskIdAndUserId(TASK_ID, USER_ID);
+      assertThat(actual).isEmpty();
+    }
+
+    @Test
+    void タスクが存在しない場合OptionalEmptyを返す() {
+      final Long TASK_ID = 999L;
+      final Long USER_ID = 1L;
+
+      final var actual = taskRepository.selectEntityByTaskIdAndUserId(TASK_ID, USER_ID);
+      assertThat(actual).isEmpty();
+    }
+  }
+
   private void assertThatForTaskEntity(final List<TaskEntity> actual,
       final List<TaskEntity> expect) {
     IntStream.range(0, expect.size()).forEach(i -> {
