@@ -74,6 +74,8 @@ public class TaskServiceTest {
   @Nested
   class Create {
 
+    final Long USER_ID = 1L;
+
     @Test
     void タスクを作成できる() {
       final var taskCreateDto = TaskCreateDto.builder() //
@@ -83,12 +85,12 @@ public class TaskServiceTest {
           .description("DESCRIPTION") //
           .build();
 
-      doReturn(1L).when(taskRepository).insert(any());
+      doReturn(1L).when(taskRepository).insert(any(), anyLong());
 
-      final var actual = taskService.create(taskCreateDto);
+      final var actual = taskService.create(taskCreateDto, USER_ID);
 
       assertThat(actual).isEqualTo(1L);
-      verify(taskRepository, times(1)).insert(any());
+      verify(taskRepository, times(1)).insert(any(), anyLong());
     }
 
     @Test
@@ -100,10 +102,10 @@ public class TaskServiceTest {
           .description("DESCRIPTION") //
           .build();
 
-      assertThatThrownBy(() -> taskService.create(taskCreateDto)) //
+      assertThatThrownBy(() -> taskService.create(taskCreateDto, USER_ID)) //
           .isInstanceOf(BadRequestException.class) //
           .hasMessageContaining(ErrorMessageEnum.INVALID_PERIOD.getMessage());
-      verify(taskRepository, never()).insert(any());
+      verify(taskRepository, never()).insert(any(), anyLong());
     }
   }
 
