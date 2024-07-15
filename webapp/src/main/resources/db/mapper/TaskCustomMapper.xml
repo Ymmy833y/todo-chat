@@ -1,4 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.ymmy.todo_chat.db.mapper.TaskCustomMapper">
+  <sql id="TaskColumns">
+    task.id as task_id,
+    task.status_id as task_status_id,
+    task.title as task_title,
+    task.start_date_time as task_start_date_time,
+    task.end_date_time as task_end_date_time,
+    task.description as task_description,
+    task.created_by as task_created_by
+  </sql>
+
+  <resultMap id="TaskEntityResultMap" type="org.ymmy.todo_chat.model.entity.TaskEntity">
+    <id property="taskId" column="task_id"/>
+    <result property="title" column="task_title"/>
+    <result property="statusId" column="task_status_id"/>
+    <result property="startDateTime" column="task_start_date_time"/>
+    <result property="endDateTime" column="task_end_date_time"/>
+    <result property="description" column="task_description"/>
+    <result property="createdBy" column="task_created_by"/>
+
+    <association property="taskStatus" javaType="org.ymmy.todo_chat.db.entity.TaskStatus">
+      <id property="id" column="task_status_id"/>
+      <result property="name" column="task_status_name"/>
+      <result property="colorCode" column="task_status_color_code"/>
+      <result property="remarks" column="task_status_remarks"/>
+      <result property="isReadOnly" column="task_status_is_read_only"/>
+    </association>
+  </resultMap>
+
+  <select id="selectAllBySearchCriteria" parameterType="org.ymmy.todo_chat.model.dto.TaskSearchDto" resultMap="TaskEntityResultMap">
+    SELECT
+      <include refid="TaskColumns" />,
+      <include refid="org.ymmy.todo_chat.db.mapper.TaskStatusCustomMapper.TaskStatusColumns" />
+    FROM
+      task
+      INNER JOIN task_status ON task_status.id = task.status_id
+    WHERE 1 = 1
+      <if test="searchDto.excludedStatus != null and !searchDto.excludedStatus.isEmpty()">
+        AND task.status_id NOT IN
+        <foreach item="status" index="index" collection="searchDto.excludedStatus" open="(" separator="," close=")">
+          #{status}
+        </foreach>
+      </if>
+      <if test="searchDto.includeStatus != null and !searchDto.includeStatus.isEmpty()">
+        AND task.status_id IN
+        <foreach item="status" index="index" collection="searchDto.includeStatus" open="(" separator="," close=")">
+          #{status}
+        </foreach>
+      </if>
+      <if test="searchDto.startDateTimeFrom != null">
+        AND task.start_date_time &gt;= #{searchDto.startDateTimeFrom}
+      </if>
+      <if test="searchDto.startDateTimeTo != null">
+        AND task.start_date_time &lt;= #{searchDto.startDateTimeTo}
+      </if>
+      <if test="searchDto.endDateTimeFrom != null">
+        AND task.end_date_time &gt;= #{searchDto.endDateTimeFrom}
+      </if>
+      <if test="searchDto.endDateTimeTo != null">
+        AND task.end_date_time &lt;= #{searchDto.endDateTimeTo}
+      </if>
+      <if test="searchDto.includeTitle != null and searchDto.includeTitle != ''">
+        AND task.title LIKE CONCAT('%', #{searchDto.includeTitle}, '%')
+      </if>
+      <if test="searchDto.includeCreatedBy != null and searchDto.includeCreatedBy != ''">
+        AND task.created_by = #{searchDto.includeCreatedBy}
+      </if>
+    ORDER BY
+      task.id
+      <if test="searchDto.includeCount != null">
+        LIMIT #{searchDto.includeStartPosition}, #{searchDto.includeCount}
+      </if>
+  </select>
 </mapper>

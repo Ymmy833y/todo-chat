@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.ymmy.todo_chat.db.entity.User;
 import org.ymmy.todo_chat.exception.BadRequestException;
+import org.ymmy.todo_chat.exception.InvalidCredentialsException;
 import org.ymmy.todo_chat.model.dto.LoginDto;
 import org.ymmy.todo_chat.repository.UserRepository;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
@@ -71,33 +72,34 @@ public class UserServiceTest {
   class IsAuthenticated {
 
     @Test
-    void セッションにuserIdが含まれている場合は例外を返さない() {
+    void セッションにuserIdが含まれている場合はuserIDを返す() {
       final Long userId = 1L;
       doReturn(userId).when(session).getAttribute("userId");
       doReturn(
           new User(userId, "USER_NAME", "DISPLAY_NAME", LocalDateTime.of(2024, 1, 1, 0, 0, 0), 0L,
               1L)).when(userRepository).selectById(userId);
 
-      userService.isAuthenticated(session);
+      final var actual = userService.isAuthenticated(session);
+      assertThat(actual).isEqualTo(1L);
     }
 
     @Test
-    void セッションにuserIdが含まれていない場合BadRequestExceptionを返す() {
+    void セッションにuserIdが含まれていない場合InvalidCredentialsExceptionを返す() {
       doReturn(null).when(session).getAttribute("userId");
 
       assertThatThrownBy(() -> userService.isAuthenticated(session))
-          .isInstanceOf(BadRequestException.class)
+          .isInstanceOf(InvalidCredentialsException.class)
           .hasMessageContaining(ErrorMessageEnum.CLEARED_SESSION.getMessage());
     }
 
     @Test
-    void ユーザーが存在しない場合BadRequestExceptionを返す() {
+    void ユーザーが存在しない場合InvalidCredentialsExceptionを返す() {
       final Long userId = 1L;
       doReturn(userId).when(session).getAttribute("userId");
       doReturn(null).when(userRepository).selectById(userId);
 
       assertThatThrownBy(() -> userService.isAuthenticated(session))
-          .isInstanceOf(BadRequestException.class)
+          .isInstanceOf(InvalidCredentialsException.class)
           .hasMessageContaining(ErrorMessageEnum.CLEARED_SESSION.getMessage());
     }
   }

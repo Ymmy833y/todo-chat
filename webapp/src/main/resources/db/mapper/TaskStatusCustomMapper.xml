@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.ymmy.todo_chat.db.mapper.TaskStatusCustomMapper">
+  <sql id="TaskStatusColumns">
+    task_status.id as task_status_id,
+    task_status.name as task_status_name,
+    task_status.color_code as task_status_color_code,
+    task_status.is_read_only as task_status_is_read_only,
+    task_status.remarks as task_status_remarks
+  </sql>
 </mapper>
