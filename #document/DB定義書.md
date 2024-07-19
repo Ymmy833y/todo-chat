@@ -40,3 +40,13 @@
 | created_by   | 作成者    | BIGINT      | N  | Y        | N         | 0                 |
 | version      | バージョン  | BIGINT      | N  | Y        | N         | 1                 |
 
+### comment / コメント
+
+| カラム名       | 論理名    | 型        | PK | NOT NULL | AUTO INCR | DEFA・補足           |
+|------------|--------|----------|----|----------|-----------|-------------------|
+| id         | コメントID | BIGINT   | Y  | Y        | Y         |                   |
+| thread_id  | スレッドID | BIGINT   | N  | Y        | N         |                   |
+| comment    | コメント   | TEXT     | N  | Y        | N         |                   |
+| status     | ステータス  | BIGINT   | N  | Y        | N         |                   |
+| created_at | 作成日時   | DATETIME | N  | Y        | N         | CURRENT_TIMESTAMP |
+| created_by | 作成者    | BIGINT   | N  | Y        | N         | 0                 |

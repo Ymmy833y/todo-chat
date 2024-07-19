@@ -85,6 +85,7 @@ public class TaskDetailController {
     try {
       final var userId = userService.isAuthenticated(session);
       taskService.update(taskEditForm.convertToDto(), userId);
+      redirectAttributes.addFlashAttribute("isShowMessage", true);
     } catch (InvalidCredentialsException e) {
       return new ModelAndView("redirect:/login");
     } catch (BadRequestException e) {
@@ -111,6 +112,7 @@ public class TaskDetailController {
     try {
       final var userId = userService.isAuthenticated(session);
       taskService.updateStatus(taskCompleteForm.convertToDto(), userId);
+      redirectAttributes.addFlashAttribute("isShowMessage", true);
     } catch (InvalidCredentialsException e) {
       return new ModelAndView("redirect:/login");
     } catch (BadRequestException e) {

@@ -9,6 +9,8 @@
         th:href="@{/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+  <script th:src="@{/js/sockjs.min.js}"></script>
+  <script th:src="@{/js/stomp.min.js}"></script>
 </head>
 <body>
 <th:block th:include="fragments/header::header (currentUrl=${taskCreateDetailDto.currentUrl})"/>
@@ -69,6 +71,8 @@
     </form>
   </div>
 </main>
+<th:block th:include="fragments/message::message
+ (commentDetailDto=${taskCreateDetailDto.commentDetailDto}, isShowMessage=${isShowMessage})"/>
 <th:block th:replace="fragments/footer::footer"/>
 <script crossorigin="anonymous" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
         th:src="@{/js/bootstrap.bundle.min.js}"></script>

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,9 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.ymmy.todo_chat.exception.BadRequestException;
+import org.ymmy.todo_chat.logic.CommentLogic;
 import org.ymmy.todo_chat.logic.TaskLogic;
+import org.ymmy.todo_chat.model.dto.CommentDetailDto;
 import org.ymmy.todo_chat.model.dto.PaginationDto;
 import org.ymmy.todo_chat.model.dto.TaskCompleteDto;
 import org.ymmy.todo_chat.model.dto.TaskCreateDto;
@@ -53,9 +56,11 @@ public class TaskServiceTest {
           generateTaskStatusDto(2L, STATUS_REMARKS),
           generateTaskStatusDto(3L, STATUS_REMARKS)
       );
+      final var commentDetailDto = generateCommentDetailDto(USER_ID);
 
       doReturn(taskDto).when(taskLogic).getTaskDto(anyLong(), anyLong());
       doReturn(taskStatusDtoList).when(taskLogic).getTaskStatusDtoList();
+      doReturn(commentDetailDto).when(commentLogic).getCommentDetailDto(anyLong());
 
       final var actual = taskService.getTaskDetailDto(TASK_ID, USER_ID);
 
@@ -65,6 +70,7 @@ public class TaskServiceTest {
           .taskDto(taskDto) //
           .statusDtoList(taskStatusDtoList) //
           .detailMessages(expectDetailMessages) //
+          .commentDetailDto(commentDetailDto) //
           .build();
 
       assertThat(actual)
@@ -88,11 +94,13 @@ public class TaskServiceTest {
           .build();
 
       doReturn(1L).when(taskRepository).insert(any(), anyLong());
+      doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
 
       final var actual = taskService.create(taskCreateDto, USER_ID);
 
       assertThat(actual).isEqualTo(1L);
       verify(taskRepository, times(1)).insert(any(), anyLong());
+      verify(commentService, times(1)).saveAndSendAppGeneratedComment(any());
     }
 
     @Test
@@ -120,9 +128,11 @@ public class TaskServiceTest {
       doReturn(generateTaskDto(TASK_ID, 1L, "REMARKS")).when(taskLogic)
           .getTaskDto(anyLong(), anyLong());
       doNothing().when(taskRepository).update(any(), anyLong());
+      doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
 
       taskService.update(taskEditDto, USER_ID);
       verify(taskRepository, times(1)).update(any(), anyLong());
+      verify(commentService, times(1)).saveAndSendAppGeneratedComment(any());
     }
 
     @Test
@@ -159,9 +169,11 @@ public class TaskServiceTest {
       doReturn(generateTaskDto(TASK_ID, 1L, "REMARKS")).when(taskLogic)
           .getTaskDto(anyLong(), anyLong());
       doNothing().when(taskRepository).update(any(), anyLong());
+      doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
 
       taskService.updateStatus(taskCompleteDto, USER_ID);
       verify(taskRepository, times(1)).update(any(), anyLong());
+      verify(commentService, times(1)).saveAndSendAppGeneratedComment(any());
     }
 
     private TaskCompleteDto generateTaskCompleteDto(final Long taskId) {
@@ -221,6 +233,8 @@ public class TaskServiceTest {
     return TaskDto.builder()
         .taskId(taskId) //
         .taskStatusDto(generateTaskStatusDto(statusId, statusRemarks)) //
+        .title("TITLE") //
+        .startDateTime(LocalDateTime.of(2024, 1, 1, 0, 0)) //
         .build();
   }
 
@@ -234,10 +248,21 @@ public class TaskServiceTest {
         .build();
   }
 
+  private CommentDetailDto generateCommentDetailDto(final Long threadId) {
+    return CommentDetailDto.builder() //
+        .commentDtoList(Collections.emptyList()) //
+        .threadId(threadId) //
+        .build();
+  }
+
   @InjectMocks
   private TaskService taskService;
   @Mock
+  private CommentService commentService;
+  @Mock
   private TaskLogic taskLogic;
+  @Mock
+  private CommentLogic commentLogic;
   @Mock
   private TaskRepository taskRepository;
 }

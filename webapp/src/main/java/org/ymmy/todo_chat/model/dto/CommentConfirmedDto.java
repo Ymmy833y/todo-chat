@@ -10,10 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TaskCreateDetailDto implements Serializable {
+public class CommentConfirmedDto implements Serializable {
 
-  private CommentDetailDto commentDetailDto;
-  @Builder.Default
-  private String currentUrl = "/task/add";
+  private Long threadId;
 
 }

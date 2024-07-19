@@ -3,6 +3,7 @@ package org.ymmy.todo_chat.service;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.ymmy.todo_chat.logic.CommentLogic;
 import org.ymmy.todo_chat.logic.TaskLogic;
 import org.ymmy.todo_chat.model.dto.HomeDto;
 import org.ymmy.todo_chat.model.dto.TaskDto;
@@ -13,6 +14,7 @@ import org.ymmy.todo_chat.model.dto.TaskSearchDto;
 public class HomeService {
 
   private final TaskLogic taskLogic;
+  private final CommentLogic commentLogic;
 
   private final Long COMPLETED_TASK_STATUS = 3L;
 
@@ -20,6 +22,7 @@ public class HomeService {
     return HomeDto.builder() //
         .todayTaskList(getTodayTasks(userId)) //
         .dueInAWeekTaskList(getDueInAWeekTasks(userId)) //
+        .commentDetailDto(commentLogic.getCommentDetailDto(userId)) //
         .build();
   }
 

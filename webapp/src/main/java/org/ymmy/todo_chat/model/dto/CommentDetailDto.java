@@ -11,13 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class HomeDto implements Serializable {
+public class CommentDetailDto implements Serializable {
 
-  private List<TaskDto> todayTaskList;
-  private List<TaskDto> dueInAWeekTaskList;
-  private CommentDetailDto commentDetailDto;
-
-  @Builder.Default
-  private String currentUrl = "/home";
+  private List<CommentDto> commentDtoList;
+  private Long threadId;
 
 }

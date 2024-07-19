@@ -17,6 +17,7 @@ public class TaskDetailDto implements Serializable {
   private TaskDto taskDto;
   private List<TaskStatusDto> statusDtoList;
   private Map<String, String> detailMessages; // keyが警告色（danger、success）valueがメッセージ
+  private CommentDetailDto commentDetailDto;
   @Builder.Default
   private String currentUrl = "/task/detail";
 

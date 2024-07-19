@@ -1,0 +1,10 @@
+CREATE TABLE If NOT EXISTS todo_chat.comment (
+  id BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'id',
+  thread_id BIGINT UNSIGNED COMMENT 'スレッドID',
+  comment TEXT NOT NULL COMMENT 'コメント',
+  status BIGINT NOT NULL COMMENT 'ステータス',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  created_by BIGINT NOT NULL COMMENT '作成者',
+  PRIMARY KEY (id)
+) COMMENT 'コメント';
+

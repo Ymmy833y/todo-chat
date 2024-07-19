@@ -39,13 +39,13 @@ public class TaskCreateController {
     final var modelAndView = new ModelAndView("task/add");
 
     try {
-      userService.isAuthenticated(session);
+      final var userId = userService.isAuthenticated(session);
+      modelAndView.addObject("taskCreateDetailDto", taskService.getTaskCreateDetailDto(userId));
+      modelAndView.addObject("taskCreateForm", new TaskCreateForm());
     } catch (InvalidCredentialsException e) {
       return new ModelAndView("redirect:/login");
     }
 
-    modelAndView.addObject("taskCreateDetailDto", taskService.getTaskCreateDetailDto());
-    modelAndView.addObject("taskCreateForm", new TaskCreateForm());
     modelAndView.addAllObjects(model.asMap());
 
     return modelAndView;
@@ -75,6 +75,7 @@ public class TaskCreateController {
     try {
       final var userId = userService.isAuthenticated(session);
       final var taskId = taskService.create(taskCreateForm.convertToDto(), userId);
+      redirectAttributes.addFlashAttribute("isShowMessage", true);
       return new ModelAndView(String.format("redirect:/task/detail/%s", taskId));
     } catch (InvalidCredentialsException e) {
       return new ModelAndView("redirect:/login");
