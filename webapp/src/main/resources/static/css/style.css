@@ -15,3 +15,7 @@ th.table-min-width, td.table-min-width {
 .pre-wrap {
   white-space: pre-wrap; /* CSSで改行文字を表示 */
 }
+
+.unconfirmed-user {
+  background-color: honeydew;
+}

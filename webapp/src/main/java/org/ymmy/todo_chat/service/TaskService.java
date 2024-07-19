@@ -1,6 +1,7 @@
 package org.ymmy.todo_chat.service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.exception.BadRequestException;
+import org.ymmy.todo_chat.logic.CommentLogic;
 import org.ymmy.todo_chat.logic.TaskLogic;
+import org.ymmy.todo_chat.model.dto.CommentDto;
 import org.ymmy.todo_chat.model.dto.PaginationDto;
 import org.ymmy.todo_chat.model.dto.TaskCompleteDto;
 import org.ymmy.todo_chat.model.dto.TaskCreateDetailDto;
@@ -20,16 +23,21 @@ import org.ymmy.todo_chat.model.dto.TaskEditDto;
 import org.ymmy.todo_chat.model.dto.TaskListDto;
 import org.ymmy.todo_chat.model.form.TaskSearchForm;
 import org.ymmy.todo_chat.repository.TaskRepository;
+import org.ymmy.todo_chat.util.CommentMessageEnum;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
 
 @Service
 @RequiredArgsConstructor
 public class TaskService {
 
+  private final CommentService commentService;
+
   private final TaskLogic taskLogic;
+  private final CommentLogic commentLogic;
   private final TaskRepository taskRepository;
 
   private final String DETAIL_MESSAGE_FORMAT = "このタスクは、%sです。";
+  private final Long COMPLETE_STATUS = 3L;
 
   /**
    * タスク一覧画面の詳細情報を取得します
@@ -49,16 +57,20 @@ public class TaskService {
         .paginationDto(generatePaginationDto(taskCount, searchDto.getIncludeCount(),
             searchDto.getIncludeStartPosition())) //
         .statusDtoList(taskLogic.getTaskStatusDtoList()) //
+        .commentDetailDto(commentLogic.getCommentDetailDto(userId)) //
         .build();
   }
 
   /**
    * タスク新規作成画面の詳細情報を取得します
    *
+   * @param userId ユーザーID
    * @return {@link TaskCreateDetailDto}
    */
-  public TaskCreateDetailDto getTaskCreateDetailDto() {
-    return new TaskCreateDetailDto();
+  public TaskCreateDetailDto getTaskCreateDetailDto(final Long userId) {
+    return TaskCreateDetailDto.builder() //
+        .commentDetailDto(commentLogic.getCommentDetailDto(userId)) //
+        .build();
   }
 
   /**
@@ -74,6 +86,7 @@ public class TaskService {
         .taskDto(taskDto) //
         .statusDtoList(taskLogic.getTaskStatusDtoList()) //
         .detailMessages(generateDetailMessages(taskDto)) //
+        .commentDetailDto(commentLogic.getCommentDetailDto(userId)) //
         .build();
   }
 
@@ -86,7 +99,12 @@ public class TaskService {
   @Transactional
   public Long create(final TaskCreateDto dto, final Long userId) {
     verifyForCreate(dto);
-    return taskRepository.insert(convertToTask(dto), userId);
+    final Long taskId = taskRepository.insert(convertToTask(dto), userId);
+
+    // コメントを登録します
+    commentService.saveAndSendAppGeneratedComment(generateTaskComment(
+        CommentMessageEnum.CREATE_TASK, dto.getTitle(), dto.getStartDateTime(), userId));
+    return taskId;
   }
 
   /**
@@ -100,6 +118,12 @@ public class TaskService {
     verifyForUpdate(dto, userId);
 
     taskRepository.update(convertToTask(dto), userId);
+
+    final var messageEnum = COMPLETE_STATUS.equals(dto.getStatusId()) ?
+        CommentMessageEnum.COMPLETE_TASK : CommentMessageEnum.UPDATE_TASK;
+    // コメントを登録します
+    commentService.saveAndSendAppGeneratedComment(generateTaskComment(
+        messageEnum, dto.getTitle(), dto.getStartDateTime(), userId));
   }
 
   /**
@@ -110,9 +134,13 @@ public class TaskService {
    */
   @Transactional
   public void updateStatus(final TaskCompleteDto dto, final Long userId) {
-    verifyForUpdateStatus(dto, userId);
+    final var taskDto = verifyForUpdateStatus(dto, userId);
 
     taskRepository.update(convertToTask(dto), userId);
+
+    // コメントを登録します
+    commentService.saveAndSendAppGeneratedComment(generateTaskComment(
+        CommentMessageEnum.COMPLETE_TASK, taskDto.getTitle(), taskDto.getStartDateTime(), userId));
   }
 
   /**
@@ -146,8 +174,8 @@ public class TaskService {
    * @param dto    {@link TaskCompleteDto}
    * @param userId ユーザーID
    */
-  private void verifyForUpdateStatus(final TaskCompleteDto dto, final Long userId) {
-    taskLogic.getTaskDto(dto.getTaskId(), userId); // 操作権限の検証
+  private TaskDto verifyForUpdateStatus(final TaskCompleteDto dto, final Long userId) {
+    return taskLogic.getTaskDto(dto.getTaskId(), userId); // 操作権限の検証
   }
 
   /**
@@ -178,6 +206,24 @@ public class TaskService {
       detailMessages.put("warning", String.format(DETAIL_MESSAGE_FORMAT, taskStatus.getRemarks()));
     }
     return detailMessages;
+  }
+
+  /**
+   * タスクの処理に纏わるコメントを生成します
+   *
+   * @param messageEnum   生成するコメントのテンプレート
+   * @param title         タスクのタイトル
+   * @param startDateTime タスクの開始日時
+   * @param userId        ユーザーID
+   * @return {@link CommentDto}
+   */
+  private CommentDto generateTaskComment(final CommentMessageEnum messageEnum, final String title,
+      final LocalDateTime startDateTime, final Long userId) {
+    final var date = startDateTime.format(DateTimeFormatter.ofPattern("MM/dd"));
+    return CommentDto.builder()
+        .comment(String.format(messageEnum.getMessage(), title, date)) //
+        .threadId(userId) //
+        .build();
   }
 
   /**

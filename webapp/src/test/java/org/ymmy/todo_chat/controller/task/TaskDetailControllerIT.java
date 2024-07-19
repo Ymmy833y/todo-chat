@@ -14,21 +14,29 @@ import com.ninja_squad.dbsetup.Operations;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.generator.ValueGenerators;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import javax.sql.DataSource;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.ymmy.todo_chat.db.entity.Comment;
 import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.model.form.TaskCompleteForm;
 import org.ymmy.todo_chat.model.form.TaskEditForm;
+import org.ymmy.todo_chat.repository.CommentRepository;
 import org.ymmy.todo_chat.repository.TaskRepository;
+import org.ymmy.todo_chat.util.CommentMessageEnum;
+import org.ymmy.todo_chat.util.CommentStatusEnum;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
 import org.ymmy.todo_chat.utils.DatabaseUtils;
 
@@ -37,8 +45,16 @@ import org.ymmy.todo_chat.utils.DatabaseUtils;
 @ActiveProfiles("test")
 public class TaskDetailControllerIT {
 
+  final static LocalDateTime FIXED_DATETIME = LocalDateTime.of(2024, 1, 1, 0, 0);
+
+  @AfterEach
+  void afterEach() {
+    localDateTimeMockedStatic.close();
+  }
+
   @BeforeEach
   void setUp() throws Exception {
+    localDateTimeMockedStatic = Mockito.mockStatic(LocalDateTime.class, Mockito.CALLS_REAL_METHODS);
     final var userOperation = Operations.insertInto("user")
         .withGeneratedValue("id", ValueGenerators.sequence().startingAt(1))
         .withGeneratedValue("name", ValueGenerators.stringSequence("USER_").startingAt(1)) //
@@ -137,6 +153,9 @@ public class TaskDetailControllerIT {
 
     @Test
     void タスクを更新できる() throws Exception {
+
+      localDateTimeMockedStatic.when(LocalDateTime::now).thenReturn(FIXED_DATETIME);
+
       final Long userId = 1L;
       final Long taskId = 1L;
       final var form = generateTaskEditForm( //
@@ -150,17 +169,23 @@ public class TaskDetailControllerIT {
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(String.format("/task/detail/%s", taskId)));
 
-      final var actual = taskRepository.selectById(taskId);
-
-      final var expect = new Task(taskId, 2L, "NEW TITLE", //
+      final var actualTask = taskRepository.selectById(taskId);
+      final var expectTask = new Task(taskId, 2L, "NEW TITLE", //
           LocalDateTime.of(2024, 7, 1, 0, 0, 0),
           LocalDateTime.of(2024, 7, 2, 0, 0, 0),
           null, 1L, null, null, "NEW DESCRIPTION");
-
-      Assertions.assertThat(actual) //
+      Assertions.assertThat(actualTask) //
           .usingRecursiveComparison()  //
           .ignoringFieldsMatchingRegexes("createdAt", "updatedAt", "version") //
-          .isEqualTo(expect);
+          .isEqualTo(expectTask);
+
+      final var actualComment = commentRepository.selectByThreadId(userId);
+      final var expectComment = List.of(
+          generateComment(1L, userId, userId, "NEW TITLE", "07/01",
+              CommentMessageEnum.UPDATE_TASK));
+      Assertions.assertThat(actualComment) //
+          .usingRecursiveComparison()  //
+          .isEqualTo(expectComment);
     }
 
     @Test
@@ -227,6 +252,9 @@ public class TaskDetailControllerIT {
 
     @Test
     void タスクのステータスを完了にできる() throws Exception {
+
+      localDateTimeMockedStatic.when(LocalDateTime::now).thenReturn(FIXED_DATETIME);
+
       final Long userId = 1L;
       final Long taskId = 1L;
       final var form = generateTaskCompleteForm(taskId);
@@ -238,17 +266,23 @@ public class TaskDetailControllerIT {
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(String.format("/task/detail/%s", taskId)));
 
-      final var actual = taskRepository.selectById(taskId);
-
-      final var expect = new Task(taskId, 3L, "TITLE_1", //
+      final var actualTask = taskRepository.selectById(taskId);
+      final var expectTask = new Task(taskId, 3L, "TITLE_1", //
           LocalDateTime.of(2024, 1, 1, 0, 0, 0),
           LocalDateTime.of(2024, 1, 31, 23, 59),
           null, 1L, null, null, "DESCRIPTION");
-
-      Assertions.assertThat(actual) //
+      Assertions.assertThat(actualTask) //
           .usingRecursiveComparison()  //
           .ignoringFieldsMatchingRegexes("createdAt", "updatedAt", "version") //
-          .isEqualTo(expect);
+          .isEqualTo(expectTask);
+
+      final var actualComment = commentRepository.selectByThreadId(userId);
+      final var expectComment = List.of(
+          generateComment(1L, userId, userId, "TITLE_1", "01/01",
+              CommentMessageEnum.COMPLETE_TASK));
+      Assertions.assertThat(actualComment) //
+          .usingRecursiveComparison()  //
+          .isEqualTo(expectComment);
     }
 
     @Test
@@ -284,10 +318,26 @@ public class TaskDetailControllerIT {
     }
   }
 
+  private Comment generateComment(final Long id, final Long threadId, final Long userId,
+      final String title, final String date, final CommentMessageEnum messageEnum) {
+    return new Comment() //
+        .withId(id) //
+        .withId(threadId) //
+        .withThreadId(userId) //
+        .withStatus(CommentStatusEnum.USER_UNCONFIRMED.getCode()) //
+        .withCreatedBy(0L) //
+        .withCreatedAt(FIXED_DATETIME) //
+        .withComment(String.format(messageEnum.getMessage(), title, date));
+  }
+
   @Autowired
   DataSource dataSource;
   @Autowired
   private MockMvc mockMvc;
   @Autowired
   private TaskRepository taskRepository;
+  @Autowired
+  private CommentRepository commentRepository;
+
+  static MockedStatic<LocalDateTime> localDateTimeMockedStatic;
 }

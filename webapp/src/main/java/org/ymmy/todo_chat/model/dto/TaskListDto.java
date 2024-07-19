@@ -16,6 +16,7 @@ public class TaskListDto implements Serializable {
   private List<TaskDto> taskDtoList;
   private PaginationDto paginationDto;
   private List<TaskStatusDto> statusDtoList;
+  private CommentDetailDto commentDetailDto;
   @Builder.Default
   private String currentUrl = "/task";
 
