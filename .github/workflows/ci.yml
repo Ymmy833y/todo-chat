@@ -5,9 +5,13 @@ on:
   push:
     branches:
       - master
+      - feature/semantic-kernel
+      - feature/lang-chain4j
   pull_request:
     branches:
       - master
+      - feature/semantic-kernel
+      - feature/lang-chain4j
 
 jobs:
   build:
