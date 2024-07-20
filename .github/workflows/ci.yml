@@ -40,9 +40,9 @@ jobs:
         run: |
           for i in {1..30}; do
             if [ "$(docker inspect --format='{{.State.Health.Status}}' todo-chat-test)" == "healthy" ]; then
+              echo "MySQL is healthy"
               exit 0
             fi
-            echo "Waiting for MySQL to be healthy"
             sleep 2
           done
           echo "MySQL failed to become healthy"
@@ -70,6 +70,9 @@ jobs:
           echo "SPRING_DATASOURCE_USERNAME=todo_chat" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=password" >> $GITHUB_ENV
           echo "MYBATIS_MAPPER_LOCATIONS=classpath*:/db/mapper/*.xml" >> $GITHUB_ENV
+          echo "OPENAI_ENDPOINT=endpoint" >> $GITHUB_ENV
+          echo "OPENAI_APIKEY=apikey" >> $GITHUB_ENV
+          echo "OPENAI_MODEL_ID=modelId" >> $GITHUB_ENV
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml -Dapp.version=${{ env.APP_VERSION }}
