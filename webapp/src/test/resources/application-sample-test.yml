@@ -9,3 +9,8 @@ spring:
 
 mybatis:
   mapper-locations: classpath*:/db/mapper/*.xml
+
+openai:
+  endpoint: endpoint
+  apikey: apikey
+  model: model

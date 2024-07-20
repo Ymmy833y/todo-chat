@@ -16,4 +16,4 @@ mybatis:
 openai:
   endpoint: # https://api.openai.com/v1/models/
   apikey:
-  modelId: # gpt-4
+  model: # gpt-4
