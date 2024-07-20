@@ -29,9 +29,9 @@ jobs:
           echo "MYSQL_PASSWORD=password" >> $GITHUB_ENV
           echo "TZ=Asia/Tokyo" >> $GITHUB_ENV
           echo "APP_VERSION=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
-          echo "openai.endpoint=endpoint" >> $GITHUB_ENV
-          echo "openai.apikey=apikey" >> $GITHUB_ENV
-          echo "openai.modelId=modelId" >> $GITHUB_ENV
+          echo "OPENAI_ENDPOINT=endpoint" >> $GITHUB_ENV
+          echo "OPENAI_APIKEY=apikey" >> $GITHUB_ENV
+          echo "OPENAI_MODEL_ID=modelId" >> $GITHUB_ENV
 
       - name: Set up Docker Compose
         run: docker-compose up -d
