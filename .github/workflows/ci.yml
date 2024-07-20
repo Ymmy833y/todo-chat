@@ -31,7 +31,7 @@ jobs:
           echo "APP_VERSION=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
           echo "OPENAI_ENDPOINT=endpoint" >> $GITHUB_ENV
           echo "OPENAI_APIKEY=apikey" >> $GITHUB_ENV
-          echo "OPENAI_MODEL_ID=modelId" >> $GITHUB_ENV
+          echo "OPENAI_MODEL=model" >> $GITHUB_ENV
 
       - name: Set up Docker Compose
         run: docker-compose up -d
@@ -72,7 +72,7 @@ jobs:
           echo "MYBATIS_MAPPER_LOCATIONS=classpath*:/db/mapper/*.xml" >> $GITHUB_ENV
           echo "OPENAI_ENDPOINT=endpoint" >> $GITHUB_ENV
           echo "OPENAI_APIKEY=apikey" >> $GITHUB_ENV
-          echo "OPENAI_MODEL_ID=modelId" >> $GITHUB_ENV
+          echo "OPENAI_MODEL=model" >> $GITHUB_ENV
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml -Dapp.version=${{ env.APP_VERSION }}
