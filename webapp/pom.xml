@@ -149,6 +149,17 @@
       <artifactId>assertj-core</artifactId>
       <groupId>org.assertj</groupId>
     </dependency>
+    <!-- LangChain4j -->
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j</artifactId>
+      <version>0.32.0</version>
+    </dependency>
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
+      <version>0.32.0</version>
+    </dependency>
   </dependencies>
   <description>This is a web application that combines the Todo application and ChatGPT.
   </description>

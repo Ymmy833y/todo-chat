@@ -16,6 +16,7 @@ public class CommentService {
 
   private final SimpMessagingTemplate messagingTemplate;
 
+  private final LangChain4jService langChain4jService;
   private final CommentLogic commentLogic;
   private final CommentRepository commentRepository;
 
@@ -37,8 +38,7 @@ public class CommentService {
    * @return {@link CommentDto}
    */
   public CommentDto createReplyComment(final CommentDto commentDto) {
-    // todo ここにChatGPTのロジックを仕込む
-    final var replyText = String.format("App が「%s」について返信します", commentDto.getComment());
+    final var replyText = langChain4jService.getResponse(commentDto);
     final var replyComment = commentLogic.insertAppComment(commentDto.getThreadId(), replyText);
     return new CommentDto(replyComment);
   }
