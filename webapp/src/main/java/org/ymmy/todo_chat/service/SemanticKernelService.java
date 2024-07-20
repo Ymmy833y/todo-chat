@@ -27,7 +27,7 @@ public class SemanticKernelService {
   public SemanticKernelService( //
       @Value("${openai.endpoint}") final String endpoint, //
       @Value("${openai.apikey}") final String apiKey, //
-      @Value("${openai.modelId}") final String modelId, //
+      @Value("${openai.model}") final String model, //
       UserService userService,
       CommentRepository commentRepository
   ) {
@@ -41,7 +41,7 @@ public class SemanticKernelService {
         .buildAsyncClient();
 
     this.chat = ChatCompletionService.builder()
-        .withModelId(modelId)
+        .withModelId(model)
         .withOpenAIAsyncClient(client)
         .build();
 
