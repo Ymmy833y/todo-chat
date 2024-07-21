@@ -121,4 +121,31 @@ public class TaskDetailController {
 
     return new ModelAndView(String.format("redirect:/task/detail/%s", taskId));
   }
+
+  /**
+   * タスクを削除する
+   *
+   * @param taskId             タスクID
+   * @param taskEditForm       {@link TaskEditForm}
+   * @param redirectAttributes {@link RedirectAttributes}
+   * @param session            {@link HttpSession}
+   * @return タスク一覧画面 / ログイン画面
+   */
+  @PostMapping("delete/{taskID}")
+  public ModelAndView delete(@RequestParam("taskId") final Long taskId,
+      @ModelAttribute final TaskEditForm taskEditForm,
+      final RedirectAttributes redirectAttributes, final HttpSession session) {
+
+    try {
+      final var userId = userService.isAuthenticated(session);
+      taskService.delete(taskEditForm.convertToDto(), userId);
+      redirectAttributes.addFlashAttribute("isShowMessage", true);
+    } catch (InvalidCredentialsException e) {
+      return new ModelAndView("redirect:/login");
+    } catch (BadRequestException e) {
+      redirectAttributes.addFlashAttribute("exception", e.getMessage());
+    }
+
+    return new ModelAndView("redirect:/task");
+  }
 }

@@ -144,6 +144,23 @@ public class TaskService {
   }
 
   /**
+   * タスクを削除します
+   *
+   * @param dto    {@link TaskEditDto}
+   * @param userId ユーザーID
+   */
+  @Transactional
+  public void delete(final TaskEditDto dto, final Long userId) {
+    final var taskDto = verifyForDelete(dto, userId);
+
+    taskRepository.delete(convertToTask(dto));
+
+    // コメントを登録します
+    commentService.saveAndSendAppGeneratedComment(generateTaskComment(
+        CommentMessageEnum.DELETE_TASK, taskDto.getTitle(), taskDto.getStartDateTime(), userId));
+  }
+
+  /**
    * タスク作成時の検証
    *
    * @param taskCreateDto {@link TaskCreateDto}
@@ -175,6 +192,16 @@ public class TaskService {
    * @param userId ユーザーID
    */
   private TaskDto verifyForUpdateStatus(final TaskCompleteDto dto, final Long userId) {
+    return taskLogic.getTaskDto(dto.getTaskId(), userId); // 操作権限の検証
+  }
+
+  /**
+   * タスク削除時の検証
+   *
+   * @param dto    {@link TaskEditDto}
+   * @param userId ユーザーID
+   */
+  private TaskDto verifyForDelete(final TaskEditDto dto, final Long userId) {
     return taskLogic.getTaskDto(dto.getTaskId(), userId); // 操作権限の検証
   }
 
