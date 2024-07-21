@@ -56,7 +56,9 @@ function showMessage(commentId = 0) {
   const cardElem = document.getElementsByClassName('card');
   cardElem[cardElem.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  stompClient.send("/app/confirmed", {}, JSON.stringify({ threadId }));
+  if (stompClient && stompClient.connected) {
+    stompClient.send("/app/confirmed", {}, JSON.stringify({ threadId }));
+  }
 }
 
 connectWebSocket();

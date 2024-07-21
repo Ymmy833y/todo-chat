@@ -141,11 +141,11 @@
     </nav>
   </div>
 </main>
+<script th:src="@{/js/bootstrap.bundle.min.js}" crossorigin="anonymous"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"></script>
 <th:block th:include="fragments/message::message
  (commentDetailDto=${taskListDto.commentDetailDto}, isShowMessage=${isShowMessage})"/>
 <th:block th:replace="fragments/footer::footer"/>
-<script th:src="@{/js/bootstrap.bundle.min.js}" crossorigin="anonymous"
-        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"></script>
 <script th:inline="javascript">
   /*<![CDATA[*/
   $(document).ready(function() {

@@ -66,4 +66,8 @@ public class TaskRepository {
     taskCustomMapper.updateByPrimaryKeySelective(task);
   }
 
+  public void delete(final Task task) {
+    taskCustomMapper.deleteByPrimaryKey(task.getId());
+  }
+
 }
