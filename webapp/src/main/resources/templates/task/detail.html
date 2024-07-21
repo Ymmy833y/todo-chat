@@ -98,7 +98,7 @@
       <div class="tab-pane fade" id="edit" role="tabpanel" aria-labelledby="edit-tab"
            th:classappend="${isSelectEdit != null && isSelectEdit} ? 'show active'">
         <form method="post" th:action="@{/task/update/{taskId}(taskId=${taskId})}"
-              th:object="${taskEditForm}">
+              th:object="${taskEditForm}" id="taskEditForm">
           <div th:if="${exception}" class="alert alert-danger" role="alert">
             <span th:text="${exception}"></span>
           </div>
@@ -154,9 +154,14 @@
                    th:errors="*{description}"></div>
             </div>
           </div>
+          <div class="my-5 form-check">
+            <input class="form-check-input" type="checkbox" id="remove">
+            <label class="form-check-label" for="remove">タスクを削除する</label>
+          </div>
           <input type="hidden" th:field="*{taskId}"/>
           <div class="text-end mt-4">
-            <button type="submit" class="btn btn-primary w-25">更新</button>
+            <button type="submit" class="btn btn-danger w-25" id="deleteBtn" disabled>削除</button>
+            <button type="submit" class="btn btn-primary w-25" id="updateBtn">更新</button>
             <button type="button" class="btn btn-secondary w-25" id="cancelBtn">キャンセル</button>
           </div>
         </form>
@@ -164,22 +169,45 @@
     </div>
   </div>
 </main>
-<th:block th:include="fragments/message::message
- (commentDetailDto=${taskDetailDto.commentDetailDto}, isShowMessage=${isShowMessage})"/>
-<th:block th:replace="fragments/footer::footer"/>
 <script crossorigin="anonymous" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
         th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<th:block th:replace="fragments/footer::footer"/>
+<th:block th:include="fragments/message::message
+ (commentDetailDto=${taskDetailDto.commentDetailDto}, isShowMessage=${isShowMessage})"/>
 <script th:inline="javascript">
   /*<![CDATA[*/
+  const taskId = /*[[${taskId}]]*/ undefined;
   $(document).ready(function() {
     $('#cancelBtn').click(function() {
-      const taskId = /*[[${taskId}]]*/ undefined;
       if (taskId !== undefined) {
         const url = '/task/detail/' + taskId;
         window.location.href = url;
       } else {
         window.location.href = '/home';
       }
+    });
+    $('#remove').change(function() {
+      if ($(this).is(':checked')) {
+        $('#task_title').prop('disabled', true);
+        $('#task_status').prop('disabled', true);
+        $('#task_start_date_time').prop('disabled', true);
+        $('#task_end_date_time').prop('disabled', true);
+        $('#task_description').prop('disabled', true);
+        $('#updateBtn').prop('disabled', true);
+        $('#deleteBtn').prop('disabled', false);
+      } else {
+        $('#task_title').prop('disabled', false);
+        $('#task_status').prop('disabled', false);
+        $('#task_start_date_time').prop('disabled', false);
+        $('#task_end_date_time').prop('disabled', false);
+        $('#task_description').prop('disabled', false);
+        $('#updateBtn').prop('disabled', false);
+        $('#deleteBtn').prop('disabled', true);
+      }
+    });
+    $('#deleteBtn').click(function(event) {
+      event.preventDefault();
+      $('#taskEditForm').attr('action', '/task/delete/' + taskId).submit();
     });
   });
   /*]]>*/

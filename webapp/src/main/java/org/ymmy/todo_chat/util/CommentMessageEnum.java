@@ -9,7 +9,8 @@ public enum CommentMessageEnum {
 
   CREATE_TASK("タスク「%s（%s~）」を新規作成しました。"),
   UPDATE_TASK("タスク「%s（%s~）」を更新しました。"),
-  COMPLETE_TASK("タスク「%s（%s~）」を完了にしました。");
+  COMPLETE_TASK("タスク「%s（%s~）」を完了にしました。"),
+  DELETE_TASK("タスク「%s（%s~）」を削除しました。");
 
   private final String message;
 }

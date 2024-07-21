@@ -185,6 +185,26 @@ public class TaskServiceTest {
   }
 
   @Nested
+  class Delete {
+
+    @Test
+    void タスクを削除できる() {
+      final var taskEditDto = TaskEditDto.builder() //
+          .taskId(TASK_ID) //
+          .build();
+
+      doReturn(generateTaskDto(TASK_ID, 1L, "REMARKS")).when(taskLogic)
+          .getTaskDto(anyLong(), anyLong());
+      doNothing().when(taskRepository).delete(any());
+      doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
+
+      taskService.delete(taskEditDto, USER_ID);
+      verify(taskRepository, times(1)).delete(any());
+      verify(commentService, times(1)).saveAndSendAppGeneratedComment(any());
+    }
+  }
+
+  @Nested
   class GeneratePaginationDto {
 
     @Test
