@@ -246,7 +246,6 @@ public class TaskDetailControllerIT {
     }
   }
 
-
   @Nested
   class UpdateStatus {
 
@@ -328,6 +327,66 @@ public class TaskDetailControllerIT {
         .withCreatedBy(0L) //
         .withCreatedAt(FIXED_DATETIME) //
         .withComment(String.format(messageEnum.getMessage(), title, date));
+  }
+
+  @Nested
+  class Delete {
+
+    @Test
+    void タスクを削除できる() throws Exception {
+
+      localDateTimeMockedStatic.when(LocalDateTime::now).thenReturn(FIXED_DATETIME);
+
+      final Long userId = 1L;
+      final Long taskId = 1L;
+      final var form = new TaskEditForm(taskId, null, null, null, null, null);
+
+      mockMvc.perform(post("/task/delete/{taskID}", taskId)
+              .param("taskId", taskId.toString())
+              .flashAttr("taskEditForm", form)
+              .sessionAttr("userId", userId))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/task"));
+
+      final var actualTask = taskRepository.selectById(taskId);
+      Assertions.assertThat(actualTask).isEqualTo(null);
+
+      final var actualComment = commentRepository.selectByThreadId(userId);
+      final var expectComment = List.of(
+          generateComment(1L, userId, userId, "TITLE_1", "01/01",
+              CommentMessageEnum.DELETE_TASK));
+      Assertions.assertThat(actualComment) //
+          .usingRecursiveComparison()  //
+          .isEqualTo(expectComment);
+    }
+
+    @Test
+    void ログインユーザーがタスクの権限がない場合404を表示する()
+        throws Exception {
+      final Long userId = 1L;
+      final Long taskId = 2L;
+      final var form = new TaskEditForm(taskId, null, null, null, null, null);
+
+      mockMvc.perform(post("/task/delete/{taskID}", taskId)
+              .param("taskId", taskId.toString())
+              .flashAttr("taskEditForm", form)
+              .sessionAttr("userId", userId))
+          .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
+      final Long userId = 99L;
+      final Long taskId = 1L;
+      final var form = new TaskEditForm(taskId, null, null, null, null, null);
+
+      mockMvc.perform(post("/task/delete/{taskID}", taskId)
+              .param("taskId", taskId.toString())
+              .flashAttr("taskEditForm", form)
+              .sessionAttr("userId", userId))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/login"));
+    }
   }
 
   @Autowired

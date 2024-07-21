@@ -71,11 +71,11 @@
     </form>
   </div>
 </main>
+<script crossorigin="anonymous" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <th:block th:include="fragments/message::message
  (commentDetailDto=${taskCreateDetailDto.commentDetailDto}, isShowMessage=${isShowMessage})"/>
 <th:block th:replace="fragments/footer::footer"/>
-<script crossorigin="anonymous" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
-        th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script th:inline="javascript">
   /*<![CDATA[*/
   $("#cancelBtn").click(function() {
