@@ -32,6 +32,7 @@ jobs:
           echo "OPENAI_ENDPOINT=endpoint" >> $GITHUB_ENV
           echo "OPENAI_APIKEY=apikey" >> $GITHUB_ENV
           echo "OPENAI_MODEL=model" >> $GITHUB_ENV
+          echo "DOCUMENT_PATH=${{ github.workspace }}/document" >> $GITHUB_ENV
 
       - name: Set up Docker Compose
         run: docker-compose up -d
@@ -48,6 +49,7 @@ jobs:
           echo "MySQL failed to become healthy"
           docker logs todo-chat-test
           exit 1
+        working-directory: .
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -74,7 +76,9 @@ jobs:
           echo "OPENAI_MODEL=model" >> $GITHUB_ENV
 
       - name: Build with Maven
-        run: mvn -B package --file webapp/pom.xml -Dapp.version=${{ env.APP_VERSION }}
+        run: mvn -B package --file pom.xml -Dapp.version=${{ env.APP_VERSION }}
+        working-directory: ./webapp
 
       - name: Run tests with Maven
         run: mvn test -Dapp.version=${{ env.APP_VERSION }}
+        working-directory: ./webapp
