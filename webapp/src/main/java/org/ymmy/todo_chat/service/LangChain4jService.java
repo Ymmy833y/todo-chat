@@ -40,7 +40,7 @@ public class LangChain4jService {
         .build();
 
     final var documentParser = new TextDocumentParser();
-    final var document = FileSystemDocumentLoader.loadDocuments("#document/", documentParser);
+    final var document = FileSystemDocumentLoader.loadDocuments("documents", documentParser);
 
     final var splitter = DocumentSplitters.recursive(300, 0);
     final var segments = splitter.splitAll(document);

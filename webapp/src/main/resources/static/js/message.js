@@ -30,7 +30,7 @@ function createComment(comment) {
     <div class="w-75">
       <div id="comment_${comment.id}" class="card ${comment.status == '100' ? 'unconfirmed-user' : ''}">
         <div class="card-body">
-          <span class="card-text">${comment.comment}</span>
+          <span class="card-text pre-wrap">${comment.comment}</span>
         </div>
       </div>
       <div class="py-0 ${comment.createdBy == 0 ? 'text-start' : 'text-end'}">
