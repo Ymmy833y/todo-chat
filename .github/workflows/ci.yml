@@ -32,6 +32,7 @@ jobs:
           echo "OPENAI_ENDPOINT=endpoint" >> $GITHUB_ENV
           echo "OPENAI_APIKEY=apikey" >> $GITHUB_ENV
           echo "OPENAI_MODEL=model" >> $GITHUB_ENV
+          echo "DOCUMENT_PATH=${{ github.workspace }}/document" >> $GITHUB_ENV
 
       - name: Set up Docker Compose
         run: docker-compose up -d
