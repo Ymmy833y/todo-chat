@@ -15,6 +15,7 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.ymmy.todo_chat.config.DocumentConfig;
 import org.ymmy.todo_chat.db.entity.Comment;
 import org.ymmy.todo_chat.model.dto.CommentDto;
 import org.ymmy.todo_chat.repository.CommentRepository;
@@ -29,6 +30,7 @@ public class LangChain4jService {
   public LangChain4jService(
       @Value("${openai.apikey}") final String apiKey, //
       @Value("${openai.model}") final String model,
+      final DocumentConfig documentConfig,
       final CommentRepository commentRepository
   ) {
 
@@ -40,7 +42,8 @@ public class LangChain4jService {
         .build();
 
     final var documentParser = new TextDocumentParser();
-    final var document = FileSystemDocumentLoader.loadDocuments("documents", documentParser);
+    final var document = FileSystemDocumentLoader.loadDocuments(documentConfig.getDocumentPath(),
+        documentParser);
 
     final var splitter = DocumentSplitters.recursive(300, 0);
     final var segments = splitter.splitAll(document);
