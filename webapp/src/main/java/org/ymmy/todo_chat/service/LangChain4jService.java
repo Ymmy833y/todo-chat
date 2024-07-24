@@ -1,13 +1,21 @@
 package org.ymmy.todo_chat.service;
 
+import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
+import dev.langchain4j.data.document.parser.TextDocumentParser;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.embedding.bge.small.en.v15.BgeSmallEnV15EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.ymmy.todo_chat.config.DocumentConfig;
 import org.ymmy.todo_chat.db.entity.Comment;
 import org.ymmy.todo_chat.model.dto.CommentDto;
 import org.ymmy.todo_chat.repository.CommentRepository;
@@ -22,6 +30,7 @@ public class LangChain4jService {
   public LangChain4jService(
       @Value("${openai.apikey}") final String apiKey, //
       @Value("${openai.model}") final String model,
+      final DocumentConfig documentConfig,
       final CommentRepository commentRepository
   ) {
 
@@ -31,8 +40,30 @@ public class LangChain4jService {
         .apiKey(apiKey) //
         .modelName(model) //
         .build();
+
+    final var documentParser = new TextDocumentParser();
+    final var document = FileSystemDocumentLoader.loadDocuments(documentConfig.getDocumentPath(),
+        documentParser);
+
+    final var splitter = DocumentSplitters.recursive(300, 0);
+    final var segments = splitter.splitAll(document);
+
+    final var embeddingModel = new BgeSmallEnV15EmbeddingModel();
+    final var embeddings = embeddingModel.embedAll(segments).content();
+
+    final var embeddingStore = new InMemoryEmbeddingStore<TextSegment>();
+    embeddingStore.addAll(embeddings, segments);
+
+    final var contentRetriever = EmbeddingStoreContentRetriever.builder() //
+        .embeddingStore(embeddingStore) //
+        .embeddingModel(embeddingModel) //
+        .maxResults(2) //
+        .minScore(0.5) //
+        .build();
+
     this.assistant = AiServices.builder(Assistant.class) //
         .chatLanguageModel(chatLanguageModel) //
+        .contentRetriever(contentRetriever) //
         .chatMemoryProvider(this::initializeChatMemory) //
         .build();
   }

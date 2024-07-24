@@ -37,7 +37,7 @@
             <div class="card" th:id="${'comment_' + commentDto.id}"
                  th:classappend="${commentDto.status == 100} ? 'unconfirmed-user' : ''">
               <div class="card-body">
-                <span class="card-text" th:text="${commentDto.comment}"></span>
+                <span class="card-text pre-wrap" th:text="${commentDto.comment}"></span>
               </div>
             </div>
             <div class="py-0"
