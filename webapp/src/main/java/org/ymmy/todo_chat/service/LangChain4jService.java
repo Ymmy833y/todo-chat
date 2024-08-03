@@ -19,6 +19,7 @@ import org.ymmy.todo_chat.config.DocumentConfig;
 import org.ymmy.todo_chat.db.entity.Comment;
 import org.ymmy.todo_chat.model.dto.CommentDto;
 import org.ymmy.todo_chat.repository.CommentRepository;
+import org.ymmy.todo_chat.tool.TaskTool;
 
 @Service
 public class LangChain4jService {
@@ -31,7 +32,8 @@ public class LangChain4jService {
       @Value("${openai.apikey}") final String apiKey, //
       @Value("${openai.model}") final String model,
       final DocumentConfig documentConfig,
-      final CommentRepository commentRepository
+      final CommentRepository commentRepository,
+      final TaskTool taskTool
   ) {
 
     this.commentRepository = commentRepository;
@@ -63,6 +65,7 @@ public class LangChain4jService {
 
     this.assistant = AiServices.builder(Assistant.class) //
         .chatLanguageModel(chatLanguageModel) //
+        .tools(taskTool) //
         .contentRetriever(contentRetriever) //
         .chatMemoryProvider(this::initializeChatMemory) //
         .build();
