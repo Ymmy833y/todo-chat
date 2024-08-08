@@ -1,9 +1,10 @@
 package org.ymmy.todo_chat.controller.task;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -37,6 +38,7 @@ import org.ymmy.todo_chat.model.dto.TaskStatusDto;
 import org.ymmy.todo_chat.model.form.TaskSearchForm;
 import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.repository.TaskStatusRepository;
+import org.ymmy.todo_chat.utils.AuthorityUtils;
 import org.ymmy.todo_chat.utils.DatabaseUtils;
 
 @SpringBootTest
@@ -53,6 +55,7 @@ public class TaskListControllerIT {
             ValueGenerators.stringSequence("DISPLAY_NAME_").startingAt(1)) //
         .row() // id: 1
         .end() //
+        .withDefaultValue("password", "password") //
         .withDefaultValue("created_by", 1L) //
         .build();
 
@@ -155,9 +158,10 @@ public class TaskListControllerIT {
     @Test
     void タスク一覧画面を表示できる() throws Exception {
       final Long userId = 1L;
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       final var mvcResult = mockMvc.perform(get("/task")
-              .sessionAttr("userId", userId))
+              .with(authentication(auth)))
           .andExpect(status().isOk())
           .andExpect(view().name("task/index"))
           .andReturn();
@@ -180,16 +184,6 @@ public class TaskListControllerIT {
 
       assertThatForTaskDtoList(actualTaskListDto.getTaskDtoList(), expectTaskDtoList);
     }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final Long userId = 99L;
-
-      mockMvc.perform(get("/task")
-              .sessionAttr("userId", userId))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
-    }
   }
 
 
@@ -204,10 +198,12 @@ public class TaskListControllerIT {
           Collections.emptyList(), Collections.emptyList(), null, null, //
           null, null, "TITLE_", 2L, 3L
       );
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       final var mvcResult = mockMvc.perform(post("/task/search")
               .flashAttr("taskSearchForm", taskSearchForm)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(view().name("redirect:/task"))
           .andReturn();
@@ -221,17 +217,6 @@ public class TaskListControllerIT {
       );
 
       assertThatForTaskDtoList(actualTaskListDto.getTaskDtoList(), expectTaskDtoList);
-    }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final Long userId = 99L;
-
-      mockMvc.perform(post("/task/search")
-              .flashAttr("taskSearchForm", new TaskSearchForm())
-              .sessionAttr("userId", userId))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
     }
   }
 

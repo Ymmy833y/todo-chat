@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.exception.BadRequestException;
 import org.ymmy.todo_chat.logic.CommentLogic;
+import org.ymmy.todo_chat.logic.LoginUserLogic;
 import org.ymmy.todo_chat.logic.TaskLogic;
 import org.ymmy.todo_chat.model.dto.CommentDto;
 import org.ymmy.todo_chat.model.dto.PaginationDto;
@@ -34,6 +35,7 @@ public class TaskService {
 
   private final TaskLogic taskLogic;
   private final CommentLogic commentLogic;
+  private final LoginUserLogic loginUserLogic;
   private final TaskRepository taskRepository;
 
   private final String DETAIL_MESSAGE_FORMAT = "このタスクは、%sです。";
@@ -42,11 +44,11 @@ public class TaskService {
   /**
    * タスク一覧画面の詳細情報を取得します
    *
-   * @param userId     ユーザーID
    * @param searchForm 検索条件 {@link TaskSearchForm}
    * @return
    */
-  public TaskListDto getTaskListDto(final Long userId, final TaskSearchForm searchForm) {
+  public TaskListDto getTaskListDto(final TaskSearchForm searchForm) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
     final var searchDto = searchForm.convertToDto(userId);
 
     final var taskDto = taskLogic.getTaskDtoList(searchDto);
@@ -64,10 +66,10 @@ public class TaskService {
   /**
    * タスク新規作成画面の詳細情報を取得します
    *
-   * @param userId ユーザーID
    * @return {@link TaskCreateDetailDto}
    */
-  public TaskCreateDetailDto getTaskCreateDetailDto(final Long userId) {
+  public TaskCreateDetailDto getTaskCreateDetailDto() {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
     return TaskCreateDetailDto.builder() //
         .commentDetailDto(commentLogic.getCommentDetailDto(userId)) //
         .build();
@@ -77,10 +79,10 @@ public class TaskService {
    * タスク詳細画面の詳細情報を取得します
    *
    * @param taskId タスクID
-   * @param userId ユーザーID
    * @return {@link TaskDetailDto}
    */
-  public TaskDetailDto getTaskDetailDto(final Long taskId, final Long userId) {
+  public TaskDetailDto getTaskDetailDto(final Long taskId) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
     final var taskDto = taskLogic.getTaskDto(taskId, userId);
     return TaskDetailDto.builder()
         .taskDto(taskDto) //
@@ -97,7 +99,8 @@ public class TaskService {
    * @return 登録されたTaskのID
    */
   @Transactional
-  public Long create(final TaskCreateDto dto, final Long userId) {
+  public Long create(final TaskCreateDto dto) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
     verifyForCreate(dto);
     final Long taskId = taskRepository.insert(convertToTask(dto), userId);
 
@@ -110,11 +113,11 @@ public class TaskService {
   /**
    * タスクを更新します
    *
-   * @param dto    {@link TaskEditDto}
-   * @param userId ユーザーID
+   * @param dto {@link TaskEditDto}
    */
   @Transactional
-  public void update(final TaskEditDto dto, final Long userId) {
+  public void update(final TaskEditDto dto) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
     verifyForUpdate(dto, userId);
 
     taskRepository.update(convertToTask(dto), userId);
@@ -129,11 +132,11 @@ public class TaskService {
   /**
    * タスクのステータスを更新します
    *
-   * @param dto    {@link TaskCompleteDto}
-   * @param userId ユーザーID
+   * @param dto {@link TaskCompleteDto}
    */
   @Transactional
-  public void updateStatus(final TaskCompleteDto dto, final Long userId) {
+  public void updateStatus(final TaskCompleteDto dto) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
     final var taskDto = verifyForUpdateStatus(dto, userId);
 
     taskRepository.update(convertToTask(dto), userId);
@@ -146,11 +149,11 @@ public class TaskService {
   /**
    * タスクを削除します
    *
-   * @param dto    {@link TaskEditDto}
-   * @param userId ユーザーID
+   * @param dto {@link TaskEditDto}
    */
   @Transactional
-  public void delete(final TaskEditDto dto, final Long userId) {
+  public void delete(final TaskEditDto dto) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
     final var taskDto = verifyForDelete(dto, userId);
 
     taskRepository.delete(convertToTask(dto));

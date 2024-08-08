@@ -21,8 +21,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.ymmy.todo_chat.config.CustomUserDetails;
 import org.ymmy.todo_chat.exception.BadRequestException;
 import org.ymmy.todo_chat.logic.CommentLogic;
+import org.ymmy.todo_chat.logic.LoginUserLogic;
 import org.ymmy.todo_chat.logic.TaskLogic;
 import org.ymmy.todo_chat.model.dto.CommentDetailDto;
 import org.ymmy.todo_chat.model.dto.PaginationDto;
@@ -58,11 +60,12 @@ public class TaskServiceTest {
       );
       final var commentDetailDto = generateCommentDetailDto(USER_ID);
 
+      doReturn(generateCustomUserDetails()).when(loginUserLogic).getUserDetails();
       doReturn(taskDto).when(taskLogic).getTaskDto(anyLong(), anyLong());
       doReturn(taskStatusDtoList).when(taskLogic).getTaskStatusDtoList();
       doReturn(commentDetailDto).when(commentLogic).getCommentDetailDto(anyLong());
 
-      final var actual = taskService.getTaskDetailDto(TASK_ID, USER_ID);
+      final var actual = taskService.getTaskDetailDto(TASK_ID);
 
       final var expectDetailMessages = new HashMap<String, String>();
       expectDetailMessages.put("warning", String.format(DETAIL_MESSAGE_FORMAT, STATUS_REMARKS));
@@ -82,8 +85,6 @@ public class TaskServiceTest {
   @Nested
   class Create {
 
-    final Long USER_ID = 1L;
-
     @Test
     void タスクを作成できる() {
       final var taskCreateDto = TaskCreateDto.builder() //
@@ -93,10 +94,11 @@ public class TaskServiceTest {
           .description("DESCRIPTION") //
           .build();
 
+      doReturn(generateCustomUserDetails()).when(loginUserLogic).getUserDetails();
       doReturn(1L).when(taskRepository).insert(any(), anyLong());
       doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
 
-      final var actual = taskService.create(taskCreateDto, USER_ID);
+      final var actual = taskService.create(taskCreateDto);
 
       assertThat(actual).isEqualTo(1L);
       verify(taskRepository, times(1)).insert(any(), anyLong());
@@ -112,7 +114,8 @@ public class TaskServiceTest {
           .description("DESCRIPTION") //
           .build();
 
-      assertThatThrownBy(() -> taskService.create(taskCreateDto, USER_ID)) //
+      doReturn(generateCustomUserDetails()).when(loginUserLogic).getUserDetails();
+      assertThatThrownBy(() -> taskService.create(taskCreateDto)) //
           .isInstanceOf(BadRequestException.class) //
           .hasMessageContaining(ErrorMessageEnum.INVALID_PERIOD.getMessage());
       verify(taskRepository, never()).insert(any(), anyLong());
@@ -125,12 +128,14 @@ public class TaskServiceTest {
     @Test
     void タスクを更新できる() {
       final var taskEditDto = generateTaskEditDto(TASK_ID, LocalDateTime.of(2024, 1, 2, 0, 0));
+
+      doReturn(generateCustomUserDetails()).when(loginUserLogic).getUserDetails();
       doReturn(generateTaskDto(TASK_ID, 1L, "REMARKS")).when(taskLogic)
           .getTaskDto(anyLong(), anyLong());
       doNothing().when(taskRepository).update(any(), anyLong());
       doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
 
-      taskService.update(taskEditDto, USER_ID);
+      taskService.update(taskEditDto);
       verify(taskRepository, times(1)).update(any(), anyLong());
       verify(commentService, times(1)).saveAndSendAppGeneratedComment(any());
     }
@@ -138,11 +143,13 @@ public class TaskServiceTest {
     @Test
     void 開始日時が終了日時より後になっている場合BadRequestExceptionを返す() {
       final var taskEditDto = generateTaskEditDto(TASK_ID, LocalDateTime.of(2023, 12, 31, 0, 0));
+
+      doReturn(generateCustomUserDetails()).when(loginUserLogic).getUserDetails();
       doReturn(generateTaskDto(TASK_ID, 1L, "REMARKS")).when(taskLogic)
           .getTaskDto(anyLong(), anyLong());
       doNothing().when(taskRepository).update(any(), anyLong());
 
-      assertThatThrownBy(() -> taskService.update(taskEditDto, USER_ID)) //
+      assertThatThrownBy(() -> taskService.update(taskEditDto)) //
           .isInstanceOf(BadRequestException.class) //
           .hasMessageContaining(ErrorMessageEnum.INVALID_PERIOD.getMessage());
       verify(taskRepository, never()).update(any(), anyLong());
@@ -166,12 +173,14 @@ public class TaskServiceTest {
     @Test
     void タスクを更新できる() {
       final var taskCompleteDto = generateTaskCompleteDto(TASK_ID);
+
+      doReturn(generateCustomUserDetails()).when(loginUserLogic).getUserDetails();
       doReturn(generateTaskDto(TASK_ID, 1L, "REMARKS")).when(taskLogic)
           .getTaskDto(anyLong(), anyLong());
       doNothing().when(taskRepository).update(any(), anyLong());
       doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
 
-      taskService.updateStatus(taskCompleteDto, USER_ID);
+      taskService.updateStatus(taskCompleteDto);
       verify(taskRepository, times(1)).update(any(), anyLong());
       verify(commentService, times(1)).saveAndSendAppGeneratedComment(any());
     }
@@ -193,12 +202,13 @@ public class TaskServiceTest {
           .taskId(TASK_ID) //
           .build();
 
+      doReturn(generateCustomUserDetails()).when(loginUserLogic).getUserDetails();
       doReturn(generateTaskDto(TASK_ID, 1L, "REMARKS")).when(taskLogic)
           .getTaskDto(anyLong(), anyLong());
       doNothing().when(taskRepository).delete(any());
       doNothing().when(commentService).saveAndSendAppGeneratedComment(any());
 
-      taskService.delete(taskEditDto, USER_ID);
+      taskService.delete(taskEditDto);
       verify(taskRepository, times(1)).delete(any());
       verify(commentService, times(1)).saveAndSendAppGeneratedComment(any());
     }
@@ -248,6 +258,10 @@ public class TaskServiceTest {
     }
   }
 
+  private CustomUserDetails generateCustomUserDetails() {
+    return new CustomUserDetails(USER_ID, "USERNAME", "PASSWORD", Collections.emptyList());
+  }
+
   private TaskDto generateTaskDto(final Long taskId, final Long statusId,
       final String statusRemarks) {
     return TaskDto.builder()
@@ -283,6 +297,8 @@ public class TaskServiceTest {
   private TaskLogic taskLogic;
   @Mock
   private CommentLogic commentLogic;
+  @Mock
+  private LoginUserLogic loginUserLogic;
   @Mock
   private TaskRepository taskRepository;
 }

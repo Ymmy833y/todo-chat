@@ -22,17 +22,26 @@
 </header>
 <main class="position-absolute top-50 start-50 translate-middle w-100">
   <div class="container text-center">
-    <form class="p-4 shadow" method="post" th:action="@{/login}" th:object="${loginForm}">
+    <form class="p-4 shadow" method="post" th:action="@{/login}">
       <div class="my-5">
         <h2>Please login</h2>
       </div>
+      <div th:if="${param.error}">
+        <div th:if="${session.containsKey('SPRING_SECURITY_LAST_EXCEPTION')}">
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${session.SPRING_SECURITY_LAST_EXCEPTION.message}"></span>
+          </div>
+        </div>
+      </div>
       <div class="form-floating mb-4">
-        <input class="form-control" id="userName"
-               th:classappend="${#fields.hasErrors('userName')} or ${exception != null} ? 'is-invalid' : ''"
-               th:field="*{userName}" type="text">
-        <label for="userName">user name</label>
-        <div class="text-danger" th:errors="*{userName}" th:if="${#fields.hasErrors('userName')}"></div>
-        <div class="text-danger" th:if="${exception}" th:text="${exception}"></div>
+        <input class="form-control" id="username" name="username" type="text">
+        <label for="username">user name</label>
+      </div>
+      <div class="form-floating mb-4">
+        <input class="form-control" id="password" name="password" type="password"
+               autocomplete="true">
+        <label for="password">password</label>
       </div>
       <div class="my-3">
         <button class="w-50 btn btn-lg btn-secondary" type="submit">Login</button>

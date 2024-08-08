@@ -2,8 +2,9 @@ package org.ymmy.todo_chat.controller;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -12,6 +13,7 @@ import com.ninja_squad.dbsetup.Operations;
 import com.ninja_squad.dbsetup.destination.DataSourceDestination;
 import com.ninja_squad.dbsetup.generator.ValueGenerators;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,11 +32,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.db.entity.TaskStatus;
+import org.ymmy.todo_chat.model.dto.CommentDetailDto;
 import org.ymmy.todo_chat.model.dto.HomeDto;
 import org.ymmy.todo_chat.model.dto.TaskDto;
 import org.ymmy.todo_chat.model.dto.TaskStatusDto;
 import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.repository.TaskStatusRepository;
+import org.ymmy.todo_chat.utils.AuthorityUtils;
 import org.ymmy.todo_chat.utils.DatabaseUtils;
 
 @SpringBootTest
@@ -61,6 +65,7 @@ public class HomeControllerIT {
             ValueGenerators.stringSequence("DISPLAY_NAME_").startingAt(1)) //
         .row() //
         .end() //
+        .withDefaultValue("password", "password") //
         .withDefaultValue("created_by", 1L) //
         .build();
 
@@ -150,39 +155,17 @@ public class HomeControllerIT {
   }
 
   @Nested
-  class Index {
-
-    @Test
-    void ログイン状況にかかわらずログイン画面にリダイレクトできる() throws Exception {
-      mockMvc.perform(get("/"))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
-    }
-  }
-
-  @Nested
   class Home {
 
     @Test
-    void 認証されていない場合ログイン画面にリダイレクトされる() throws Exception {
-      mockMvc.perform(get("/home"))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
-    }
-
-    @Test
-    void 認証情報が無効な場合ログイン画面にリダイレクトされる() throws Exception {
-      mockMvc.perform(get("/home").sessionAttr("userId", 99L))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
-    }
-
-    @Test
-    void 認証されている場合ホーム画面を表示できる() throws Exception {
+    void ホーム画面を表示できる() throws Exception {
       final var userId = 1L;
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
       localDateTimeMockedStatic.when(LocalDateTime::now).thenReturn(FIXED_DATETIME);
 
-      final var mvcResult = mockMvc.perform(get("/home").sessionAttr("userId", userId))
+      final var mvcResult = mockMvc.perform(get("/home")
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().isOk())
           .andExpect(view().name("home"))
           .andReturn();
@@ -193,6 +176,7 @@ public class HomeControllerIT {
       final var expectHomeDto = HomeDto.builder() //
           .todayTaskList(generateTaskDto(List.of(1L, 2L))) //
           .dueInAWeekTaskList(generateTaskDto(List.of(1L, 5L))) //
+          .commentDetailDto(generateCommentDetailDto()) //
           .build();
 
       assertThat(actualHomeDto)
@@ -214,6 +198,13 @@ public class HomeControllerIT {
           .taskStatusDto(new TaskStatusDto(initialTaskStatus.get(task.getStatusId()))) //
           .build();
     }).toList();
+  }
+
+  private CommentDetailDto generateCommentDetailDto() {
+    return CommentDetailDto.builder() //
+        .commentDtoList(Collections.emptyList()) //
+        .threadId(1L) //
+        .build();
   }
 
   @Autowired

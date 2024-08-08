@@ -2,6 +2,8 @@ package org.ymmy.todo_chat.controller.task;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -38,6 +40,7 @@ import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.util.CommentMessageEnum;
 import org.ymmy.todo_chat.util.CommentStatusEnum;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
+import org.ymmy.todo_chat.utils.AuthorityUtils;
 import org.ymmy.todo_chat.utils.DatabaseUtils;
 
 @SpringBootTest
@@ -64,6 +67,7 @@ public class TaskDetailControllerIT {
         .end() //
         .row() // id: 2
         .end() //
+        .withDefaultValue("password", "password") //
         .withDefaultValue("created_by", 1L) //
         .build();
 
@@ -99,9 +103,10 @@ public class TaskDetailControllerIT {
     void ログインユーザーがタスクの権限がある場合タスク詳細画面を表示できる() throws Exception {
       final Long userId = 1L;
       final Long taskId = 1L;
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       final var mvcResult = mockMvc.perform(get("/task/detail/{taskID}", taskId)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth)))
           .andExpect(status().isOk())
           .andExpect(view().name("task/detail"))
           .andReturn();
@@ -130,21 +135,11 @@ public class TaskDetailControllerIT {
     void ログインユーザーがタスクの権限がない場合404を表示する() throws Exception {
       final Long userId = 1L;
       final Long taskId = 2L;
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(get("/task/detail/{taskID}", taskId)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth)))
           .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final Long userId = 99L;
-      final Long taskId = 1L;
-
-      mockMvc.perform(get("/task/detail/{taskID}", taskId)
-              .sessionAttr("userId", userId))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
     }
   }
 
@@ -161,11 +156,13 @@ public class TaskDetailControllerIT {
       final var form = generateTaskEditForm( //
           taskId, LocalDateTime.of(2024, 7, 2, 0, 0, 0) //
       );
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/update/{taskID}", taskId)
               .param("taskId", taskId.toString())
               .flashAttr("taskEditForm", form)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(String.format("/task/detail/%s", taskId)));
 
@@ -196,11 +193,13 @@ public class TaskDetailControllerIT {
       final var form = generateTaskEditForm( //
           taskId, LocalDateTime.of(2024, 6, 1, 0, 0, 0) //
       );
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/update/{taskID}", taskId)
               .param("taskId", taskId.toString())
               .flashAttr("taskEditForm", form)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/task/detail/" + taskId))
           .andExpect(flash().attributeExists("exception"))
@@ -215,28 +214,14 @@ public class TaskDetailControllerIT {
       final var form = generateTaskEditForm( //
           taskId, LocalDateTime.of(2024, 7, 2, 0, 0, 0) //
       );
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/update/{taskID}", taskId)
               .param("taskId", taskId.toString())
               .flashAttr("taskEditForm", form)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final Long userId = 99L;
-      final Long taskId = 1L;
-      final var form = generateTaskEditForm( //
-          taskId, LocalDateTime.of(2024, 7, 2, 0, 0, 0) //
-      );
-
-      mockMvc.perform(post("/task/update/{taskID}", taskId)
-              .param("taskId", taskId.toString())
-              .flashAttr("taskEditForm", form)
-              .sessionAttr("userId", userId))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
     }
 
     private TaskEditForm generateTaskEditForm(final Long taskId, final LocalDateTime endDateTime) {
@@ -257,11 +242,13 @@ public class TaskDetailControllerIT {
       final Long userId = 1L;
       final Long taskId = 1L;
       final var form = generateTaskCompleteForm(taskId);
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/complete/{taskID}", taskId)
               .param("taskId", taskId.toString())
               .flashAttr("taskCompleteForm", form)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(String.format("/task/detail/%s", taskId)));
 
@@ -290,26 +277,14 @@ public class TaskDetailControllerIT {
       final Long userId = 1L;
       final Long taskId = 2L;
       final var form = generateTaskCompleteForm(taskId);
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/complete/{taskID}", taskId)
               .param("taskId", taskId.toString())
               .flashAttr("taskCompleteForm", form)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final Long userId = 99L;
-      final Long taskId = 1L;
-      final var form = generateTaskCompleteForm(taskId);
-
-      mockMvc.perform(post("/task/complete/{taskID}", taskId)
-              .param("taskId", taskId.toString())
-              .flashAttr("taskCompleteForm", form)
-              .sessionAttr("userId", userId))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
     }
 
     private TaskCompleteForm generateTaskCompleteForm(final Long taskId) {
@@ -340,11 +315,13 @@ public class TaskDetailControllerIT {
       final Long userId = 1L;
       final Long taskId = 1L;
       final var form = new TaskEditForm(taskId, null, null, null, null, null);
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/delete/{taskID}", taskId)
               .param("taskId", taskId.toString())
               .flashAttr("taskEditForm", form)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/task"));
 
@@ -366,26 +343,13 @@ public class TaskDetailControllerIT {
       final Long userId = 1L;
       final Long taskId = 2L;
       final var form = new TaskEditForm(taskId, null, null, null, null, null);
-
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
       mockMvc.perform(post("/task/delete/{taskID}", taskId)
               .param("taskId", taskId.toString())
               .flashAttr("taskEditForm", form)
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final Long userId = 99L;
-      final Long taskId = 1L;
-      final var form = new TaskEditForm(taskId, null, null, null, null, null);
-
-      mockMvc.perform(post("/task/delete/{taskID}", taskId)
-              .param("taskId", taskId.toString())
-              .flashAttr("taskEditForm", form)
-              .sessionAttr("userId", userId))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
     }
   }
 

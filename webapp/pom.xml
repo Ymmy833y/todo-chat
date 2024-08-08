@@ -58,6 +58,11 @@
       <artifactId>spring-boot-starter</artifactId>
       <groupId>org.springframework.boot</groupId>
     </dependency>
+    <!-- Spring Boot Starter Security -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
     <!-- Spring Boot Starter WebSocket -->
     <dependency>
       <artifactId>spring-boot-starter-websocket</artifactId>
@@ -128,6 +133,12 @@
     <dependency>
       <artifactId>spring-boot-starter-test</artifactId>
       <groupId>org.springframework.boot</groupId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Spring Boot Security Test -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- MyBatis Spring Boot Starter Test -->
