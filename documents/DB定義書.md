@@ -31,14 +31,23 @@
 
 ### user / ユーザー
 
-| カラム名         | 論理名    | 型           | PK | NOT NULL | AUTO INCR | DEFA・補足           |
-|--------------|--------|-------------|----|----------|-----------|-------------------|
-| id           | ユーザーID | BIGINT      | Y  | Y        | Y         |                   |
-| name         | ユーザー名  | VARCHAR(50) | N  | Y        | N         | UNIQUE            |
-| display_name | 表示名    | VARCHAR(50) | N  | Y        | N         |                   |
-| created_at   | 作成日時   | DATETIME    | N  | Y        | N         | CURRENT_TIMESTAMP |
-| created_by   | 作成者    | BIGINT      | N  | Y        | N         | 0                 |
-| version      | バージョン  | BIGINT      | N  | Y        | N         | 1                 |
+| カラム名         | 論理名    | 型            | PK | NOT NULL | AUTO INCR | DEFA・補足           |
+|--------------|--------|--------------|----|----------|-----------|-------------------|
+| id           | ユーザーID | BIGINT       | Y  | Y        | Y         |                   |
+| name         | ユーザー名  | VARCHAR(50)  | N  | Y        | N         | UNIQUE            |
+| password     | パスワード  | VARCHAR(255) | N  | Y        | N         |                   |
+| display_name | 表示名    | VARCHAR(50)  | N  | Y        | N         |                   |
+| created_at   | 作成日時   | DATETIME     | N  | Y        | N         | CURRENT_TIMESTAMP |
+| created_by   | 作成者    | BIGINT       | N  | Y        | N         | 0                 |
+| version      | バージョン  | BIGINT       | N  | Y        | N         | 1                 |
+
+### authority / 権限
+
+| カラム名    | 論理名    | 型           | PK | NOT NULL | AUTO INCR | DEFA・補足 |
+|---------|--------|-------------|----|----------|-----------|---------|
+| id      | ID     | BIGINT      | Y  | Y        | Y         |         |
+| user_id | ユーザーID | BIGINT      | N  | Y        | N         | UNIQUE  |
+| role    | ロール    | VARCHAR(50) | N  | Y        | N         |         |
 
 ### comment / コメント
 

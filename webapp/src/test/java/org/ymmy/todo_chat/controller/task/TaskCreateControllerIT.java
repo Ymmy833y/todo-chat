@@ -2,6 +2,8 @@ package org.ymmy.todo_chat.controller.task;
 
 import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -36,6 +38,7 @@ import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.util.CommentMessageEnum;
 import org.ymmy.todo_chat.util.CommentStatusEnum;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
+import org.ymmy.todo_chat.utils.AuthorityUtils;
 import org.ymmy.todo_chat.utils.DatabaseUtils;
 
 @SpringBootTest
@@ -61,6 +64,7 @@ public class TaskCreateControllerIT {
             ValueGenerators.stringSequence("DISPLAY_NAME_").startingAt(1)) //
         .row() // id: 1
         .end() //
+        .withDefaultValue("password", "password") //
         .withDefaultValue("created_by", 1L) //
         .build();
 
@@ -94,20 +98,13 @@ public class TaskCreateControllerIT {
     @Test
     void タスク新規作成画面を表示できる() throws Exception {
       final var userId = 1L;
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
       mockMvc.perform(get("/task/add")
-              .sessionAttr("userId", userId))
+              .with(authentication(auth))
+              .with(csrf()))
           .andExpect(status().isOk())
           .andExpect(view().name("task/add"))
           .andExpect(model().attributeExists("taskCreateForm"));
-    }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final var userId = 99L;
-      mockMvc.perform(get("/task/add")
-              .sessionAttr("userId", userId))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
     }
   }
 
@@ -124,9 +121,11 @@ public class TaskCreateControllerIT {
           LocalDateTime.of(2024, 1, 1, 0, 0, 0), //
           LocalDateTime.of(2024, 1, 2, 0, 0, 0) //
       );
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/create")
-              .sessionAttr("userId", userId)
+              .with(authentication(auth))
+              .with(csrf())
               .flashAttr("taskCreateForm", form))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/task/detail/2"));
@@ -155,9 +154,11 @@ public class TaskCreateControllerIT {
           LocalDateTime.of(2024, 1, 2, 0, 0, 0), //
           LocalDateTime.of(2024, 1, 1, 0, 0, 0) //
       );
+      final var auth = AuthorityUtils.getDefaultAuth(userId);
 
       mockMvc.perform(post("/task/create")
-              .sessionAttr("userId", userId)
+              .with(authentication(auth))
+              .with(csrf())
               .flashAttr("taskCreateForm", form))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/task/add"))
@@ -166,21 +167,6 @@ public class TaskCreateControllerIT {
 
       final var actual = taskRepository.selectAll();
       assertThat(actual).hasSize(1);
-    }
-
-    @Test
-    void セッションに有効な権限がない場合ログイン画面を表示する() throws Exception {
-      final var userId = 99L;
-      final var form = generateTaskCreateForm( //
-          LocalDateTime.of(2024, 1, 2, 0, 0, 0), //
-          LocalDateTime.of(2024, 1, 1, 0, 0, 0) //
-      );
-
-      mockMvc.perform(post("/task/create")
-              .sessionAttr("userId", userId)
-              .flashAttr("taskCreateForm", form))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/login"));
     }
 
     private Comment generateComment(final Long id, final Long threadId, final Long userId,

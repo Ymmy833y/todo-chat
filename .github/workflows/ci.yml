@@ -35,7 +35,10 @@ jobs:
           echo "DOCUMENT_PATH=${{ github.workspace }}/documents" >> $GITHUB_ENV
 
       - name: Set up Docker Compose
-        run: docker-compose up -d
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose up -d
 
       - name: Wait for MySQL to be healthy
         run: |
