@@ -95,20 +95,12 @@
     </div>
   </div>
   <hr/>
+  <form method="post" th:action="@{/logout}" class="d-none" id="logout-form"></form>
   <script th:inline="javascript">
     /*<![CDATA[*/
     $(document).ready(function() {
       $(".logout").click(function() {
-        $.ajax({
-          url: '/logout',
-          type: 'POST',
-          success: function(response) {
-            window.location.href = '/login';
-          },
-          error: function(xhr, status, error) {
-            console.log('ログアウトに失敗しました: ' + error);
-          }
-        });
+        $("#logout-form").submit();
       });
     });
     /*]]>*/
