@@ -51,8 +51,8 @@
     />
 
     <!-- 生成対象のテーブル -->
-    <!--<table tableName="" modelType="flat">-->
-    <!--  <generatedKey column="id" sqlStatement="MySql" identity="true"/>-->
-    <!--</table>-->
+    <table tableName="authority" modelType="flat">
+      <generatedKey column="id" sqlStatement="MySql" identity="true"/>
+    </table>
   </context>
 </generatorConfiguration>
