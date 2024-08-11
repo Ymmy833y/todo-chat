@@ -63,10 +63,10 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
-    <!-- Spring Boot Starter WebSocket -->
+    <!-- Spring Web MVC -->
     <dependency>
-      <artifactId>spring-boot-starter-websocket</artifactId>
-      <groupId>org.springframework.boot</groupId>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
     </dependency>
     <!-- Spring Boot Starter Thymeleaf -->
     <dependency>
@@ -127,6 +127,19 @@
       <artifactId>lombok</artifactId>
       <groupId>org.projectlombok</groupId>
       <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Servlet API -->
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.1.0</version>
+    </dependency>
+
+    <!-- Jackson -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
 
     <!-- Spring Boot Starter Test -->
