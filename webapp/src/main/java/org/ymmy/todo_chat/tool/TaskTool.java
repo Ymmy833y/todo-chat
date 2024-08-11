@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.ymmy.todo_chat.db.entity.Task;
+import org.ymmy.todo_chat.logic.LoginUserLogic;
 import org.ymmy.todo_chat.logic.TaskLogic;
 import org.ymmy.todo_chat.repository.TaskRepository;
 
@@ -14,11 +15,14 @@ public class TaskTool {
 
   private final TaskRepository taskRepository;
   private final TaskLogic taskLogic;
+  private final LoginUserLogic loginUserLogic;
 
   @Tool("""
       Create a task with title
       """)
   String createTask(final String title, final String description) {
+
+    final var userId = loginUserLogic.getUserDetails().getUserId();
 
     final var task = new Task() //
         .withTitle(title) //
@@ -27,7 +31,7 @@ public class TaskTool {
         .withEndDateTime(taskLogic.getEndDateTimeAfterDays(0)) //
         .withDescription(description);
 
-    taskRepository.insert(task, 0L);
+    taskRepository.insert(task, userId);
 
     return title;
   }
