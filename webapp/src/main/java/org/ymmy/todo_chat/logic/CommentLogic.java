@@ -31,6 +31,7 @@ public class CommentLogic {
   /**
    * App側で作成されたコメントを登録します。
    *
+   * @param threadId    スレッドID
    * @param commentText コメント
    * @return commentId
    */
@@ -48,10 +49,11 @@ public class CommentLogic {
   /**
    * User側で作成されたコメントを登録します
    *
+   * @param userId      ユーザーID
    * @param commentText コメント
    * @return commentId
    */
-  public Comment insertUserComment(final String commentText, final Long userId) {
+  public Comment insertUserComment(final Long userId, final String commentText) {
     final var comment = new Comment() //
         .withThreadId(userId) //
         .withComment(commentText) //
