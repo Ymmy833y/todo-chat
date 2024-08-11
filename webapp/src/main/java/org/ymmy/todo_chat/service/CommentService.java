@@ -1,6 +1,7 @@
 package org.ymmy.todo_chat.service;
 
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.ymmy.todo_chat.exception.BadRequestException;
@@ -20,6 +21,8 @@ public class CommentService {
   private final CommentLogic commentLogic;
   private final LoginUserLogic loginUserLogic;
   private final CommentRepository commentRepository;
+
+  private final String REPLY_COMMENT_FOR_EXCEPTION = "返信コメント作成中にエラーが発生しました。\n\n%s";
 
   /**
    * ユーザーから送信されたコメントに返信します
@@ -77,5 +80,20 @@ public class CommentService {
     if (!threadId.equals(userId)) {
       throw new BadRequestException(ErrorMessageEnum.INVALID_COMMENT_THREAD);
     }
+  }
+
+  /**
+   * 返信コメントを作成する際に例外が発生した場合に返却するコメント
+   *
+   * @param e {@link Exception} 例外
+   * @return {@link CommentDto}
+   */
+  public CommentDto generateReplyCommentForException(final Exception e) {
+    return CommentDto.builder()
+        .comment(String.format(REPLY_COMMENT_FOR_EXCEPTION, e)) //
+        .status(CommentStatusEnum.USER_UNCONFIRMED.getCode()) //
+        .createdAt(LocalDateTime.now()) //
+        .createdBy(0L) //
+        .build();
   }
 }
