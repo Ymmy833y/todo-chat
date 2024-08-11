@@ -7,6 +7,7 @@ $("#sendCommentForm").on("submit", function(event) {
 
     createComment({ comment: comment, createdBy: threadId, createdAt: new Date(), status: 200 });
     $("#comment").val("");
+    $("#sendBtn").prop("disabled", true);
 
     fetch('/comment/send', {
       method: 'POST',
@@ -17,8 +18,14 @@ $("#sendCommentForm").on("submit", function(event) {
       body: JSON.stringify({ comment, threadId })
     })
     .then(response => response.json())
-    .then(comment => createComment(comment))
-    .catch(error => console.error('Error:', error));
+    .then(comment => {
+      $("#sendBtn").prop("disabled", false);
+      createComment(comment);
+    })
+    .catch(error => {
+      $("#sendBtn").prop("disabled", false);
+      console.error('Error:', error);
+    });
   }
 });
 
