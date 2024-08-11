@@ -52,7 +52,7 @@
       <div class="w-100">
         <form class="d-flex" th:action="@{/comment/send}" method="post" id="sendCommentForm">
           <textarea name="comment" id="comment" class="form-control" rows="1" style="max-height: 10vh;"></textarea>
-          <button type="submit" class="btn btn-primary ms-2">
+          <button type="submit" class="btn btn-primary ms-2" id="sendBtn">
             <svg class="bi d-block" width="16" height="16" fill="currentColor">
               <use xlink:href="#send"></use>
             </svg>
