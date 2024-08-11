@@ -30,8 +30,9 @@ public class CommentController {
     try {
       final var replyCommentDto = commentService.getReplyComment(commentForm.convertToDto());
       return ResponseEntity.ok(replyCommentDto);
-    } catch (final BadRequestException e) {
-      return ResponseEntity.badRequest().body(null);
+    } catch (final Exception e) {
+      final var replyCommentDto = commentService.generateReplyCommentForException(e);
+      return ResponseEntity.badRequest().body(replyCommentDto);
     }
   }
 
