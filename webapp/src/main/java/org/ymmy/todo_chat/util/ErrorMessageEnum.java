@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum ErrorMessageEnum {
 
   INVALID_PERIOD("開始日時は終了日時より後に設定できません。"),
-  CLEARED_SESSION("セッション情報が無効または破棄されました。"),
+  INVALID_COMMENT_THREAD("有効なコメントスレッドではありません。"),
   NON_EXISTENT_DATA("存在しないデータです。"),
   NON_EXISTENT_STATUS("存在しないステータスです。"),
   NOT_FOUND_USER("ユーザーが見つかりませんでした。");

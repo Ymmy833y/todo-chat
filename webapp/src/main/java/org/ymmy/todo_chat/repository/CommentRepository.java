@@ -1,6 +1,7 @@
 package org.ymmy.todo_chat.repository;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.ymmy.todo_chat.db.entity.Comment;
@@ -15,6 +16,10 @@ public class CommentRepository {
 
   public List<Comment> selectAll() {
     return commentCustomMapper.selectByExampleWithBLOBs(new CommentExample());
+  }
+
+  public Optional<Comment> selectById(final Long id) {
+    return Optional.ofNullable(commentCustomMapper.selectByPrimaryKey(id));
   }
 
   /**
