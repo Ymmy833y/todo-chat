@@ -1,32 +1,38 @@
 package org.ymmy.todo_chat.controller;
 
 import lombok.AllArgsConstructor;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.ymmy.todo_chat.exception.BadRequestException;
+import org.ymmy.todo_chat.model.dto.CommentDto;
 import org.ymmy.todo_chat.model.form.CommentConfirmedForm;
 import org.ymmy.todo_chat.model.form.CommentForm;
 import org.ymmy.todo_chat.service.CommentService;
 
 @Controller
 @AllArgsConstructor
+@RequestMapping("/comment")
 public class CommentController {
 
-  private final SimpMessagingTemplate messagingTemplate;
   private final CommentService commentService;
 
   /**
-   * ユーザーからコメントを受け取り、受け取ったコメントと返信コメントを画面に返す
+   * ユーザーからコメントを受け取り、返信コメントを返す
    *
    * @param commentForm ユーザーからのコメント
    */
-  @MessageMapping("/comment")
-  public void handleComment(final CommentForm commentForm) {
-    final var commentDto = commentService.saveComment(commentForm.convertToDto());
-    messagingTemplate.convertAndSend("/message/comment", commentDto);
+  @PostMapping("/send")
+  public ResponseEntity<CommentDto> send(@RequestBody final CommentForm commentForm) {
 
-    final var replyCommentDto = commentService.createReplyComment(commentDto);
-    messagingTemplate.convertAndSend("/message/comment", replyCommentDto);
+    try {
+      final var replyCommentDto = commentService.getReplyComment(commentForm.convertToDto());
+      return ResponseEntity.ok(replyCommentDto);
+    } catch (final BadRequestException e) {
+      return ResponseEntity.badRequest().body(null);
+    }
   }
 
   /**
@@ -34,8 +40,15 @@ public class CommentController {
    *
    * @param commentConfirmedForm ユーザーからのコメント
    */
-  @MessageMapping("/confirmed")
-  public void handleConfirmed(final CommentConfirmedForm commentConfirmedForm) {
-    commentService.confirmedByUser(commentConfirmedForm.convertToDto());
+  @PostMapping("/confirmed")
+  public ResponseEntity<String> confirmed(
+      @RequestBody final CommentConfirmedForm commentConfirmedForm) {
+
+    try {
+      commentService.confirmedByUser(commentConfirmedForm.convertToDto());
+      return ResponseEntity.ok("Confirmed");
+    } catch (final BadRequestException e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
+    }
   }
 }

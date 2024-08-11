@@ -11,6 +11,7 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.ymmy.todo_chat.db.entity.Comment;
+import org.ymmy.todo_chat.logic.LoginUserLogic;
 import org.ymmy.todo_chat.model.dto.CommentDto;
 import org.ymmy.todo_chat.repository.CommentRepository;
 
@@ -21,18 +22,18 @@ public class SemanticKernelService {
   private final ChatCompletionService chat;
   private final ChatHistory history;
 
-  private final UserService userService;
+  private final LoginUserLogic loginUserLogic;
   private final CommentRepository commentRepository;
 
   public SemanticKernelService( //
       @Value("${openai.endpoint}") final String endpoint, //
       @Value("${openai.apikey}") final String apiKey, //
       @Value("${openai.model}") final String model, //
-      UserService userService,
+      LoginUserLogic loginUserLogic,
       CommentRepository commentRepository
   ) {
 
-    this.userService = userService;
+    this.loginUserLogic = loginUserLogic;
     this.commentRepository = commentRepository;
 
     final var client = new OpenAIClientBuilder()

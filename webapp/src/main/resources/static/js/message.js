@@ -1,24 +1,31 @@
-let stompClient = null;
 
-function connectWebSocket() {
-  const socket = new SockJS('/ws');
-  stompClient = Stomp.over(socket);
-  stompClient.connect({}, function (frame) {
-    stompClient.subscribe('/message/comment', function (response) {
-      const comment = JSON.parse(response.body);
-      if (comment.threadId == threadId) {
-        createComment(comment);
-      }
-    });
-  });
-}
-
-$("#commentForm").on("submit", function(event) {
+$("#sendCommentForm").on("submit", function(event) {
   event.preventDefault();
   const comment = $('#comment').val();
   if (comment != "") {
-    stompClient.send("/app/comment", {}, JSON.stringify({ comment, threadId }));
-    $('#comment').val('');
+    const csrfToken = $("#sendCommentForm input[name='_csrf']").val();
+
+    createComment({ comment: comment, createdBy: threadId, createdAt: new Date(), status: 200 });
+    $("#comment").val("");
+    $("#sendBtn").prop("disabled", true);
+
+    fetch('/comment/send', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify({ comment, threadId })
+    })
+    .then(response => response.json())
+    .then(comment => {
+      $("#sendBtn").prop("disabled", false);
+      createComment(comment);
+    })
+    .catch(error => {
+      $("#sendBtn").prop("disabled", false);
+      console.error('Error:', error);
+    });
   }
 });
 
@@ -49,19 +56,27 @@ function showMessage(commentId = 0) {
     const selectElem = document.getElementById('comment_' + commentId);
     if (selectElem !== null) {
       selectElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      stompClient.send("/app/confirmed", {}, JSON.stringify({ threadId }));
       return;
     }
   }
   const cardElem = document.getElementsByClassName('card');
   cardElem[cardElem.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  if (stompClient && stompClient.connected) {
-    stompClient.send("/app/confirmed", {}, JSON.stringify({ threadId }));
-  }
+  confirmed();
 }
 
-connectWebSocket();
+function confirmed() {
+  const csrfToken = $("#sendCommentForm input[name='_csrf']").val();
+  fetch('/comment/confirmed', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+    },
+    body: JSON.stringify({ threadId })
+  })
+  .catch(error => console.error('Error:', error));
+}
 
 function formatDateTime(dateTime) {
   const date = new Date(dateTime);
