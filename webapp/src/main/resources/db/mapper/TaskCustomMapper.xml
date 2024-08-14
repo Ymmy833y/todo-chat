@@ -11,6 +11,16 @@
     task.created_by as task_created_by
   </sql>
 
+  <resultMap id="TaskResultMap" type="org.ymmy.todo_chat.db.entity.Task">
+    <result property="id" column="task_id" />
+    <result property="statusId" column="task_status_id" />
+    <result property="title" column="task_title" />
+    <result property="startDateTime" column="task_start_date_time" />
+    <result property="endDateTime" column="task_end_date_time" />
+    <result property="description" column="task_description" />
+    <result property="createdBy" column="task_created_by" />
+  </resultMap>
+
   <resultMap id="TaskEntityResultMap" type="org.ymmy.todo_chat.model.entity.TaskEntity">
     <id property="taskId" column="task_id"/>
     <result property="title" column="task_title"/>
@@ -125,6 +135,17 @@
     WHERE
       task.id = #{taskId}
       AND task.created_by = #{userId}
+  </select>
+
+  <select id="selectByNameAndUserId" resultMap="TaskResultMap">
+    SELECT
+      <include refid="TaskColumns" />
+    FROM
+      task
+    WHERE
+      title LIKE CONCAT('%', #{title}, '%')
+      AND created_by = #{userId}
+    LIMIT 1;
   </select>
 
 </mapper>

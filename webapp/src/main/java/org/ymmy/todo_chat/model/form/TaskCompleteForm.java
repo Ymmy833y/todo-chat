@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.ymmy.todo_chat.model.dto.TaskCompleteDto;
 import org.ymmy.todo_chat.model.dto.TaskDto;
+import org.ymmy.todo_chat.model.dto.TaskCompleteDto;
 
 @Getter
 @Setter

@@ -312,6 +312,25 @@ public class TaskRepositoryTest {
     }
   }
 
+  @Nested
+  class SelectByNameAndUserId {
+
+    @Test
+    void 検索条件に一致するタスクを取得できる() {
+      final var title = "LE_1";
+      final var userId = 1L;
+
+      final var actual = taskRepository.selectByNameAndUserId(title, userId);
+      final var expect = initialTask.get(1L);
+
+      assertThat(actual).isNotEmpty();
+      assertThat(actual.get())
+          .usingRecursiveComparison()
+          .ignoringFieldsMatchingRegexes("createdAt", "updatedAt", "version")
+          .isEqualTo(expect);
+    }
+  }
+
   private void assertThatForTaskEntity(final List<TaskEntity> actual,
       final List<TaskEntity> expect) {
     IntStream.range(0, expect.size()).forEach(i -> {
