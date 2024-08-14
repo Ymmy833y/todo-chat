@@ -36,6 +36,17 @@ public class TaskRepository {
   }
 
   /**
+   * タイトルとユーザーIDに紐づくタスクを取得する
+   *
+   * @param title  タイトル
+   * @param userId ユーザーID
+   * @return タスク
+   */
+  public Optional<Task> selectByNameAndUserId(final String title, final Long userId) {
+    return Optional.ofNullable(taskCustomMapper.selectByNameAndUserId(title, userId));
+  }
+
+  /**
    * 検索条件に一致するタスク数を取得する
    *
    * @param taskSearchDto {@link TaskSearchDto} 検索条件

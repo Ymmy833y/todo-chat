@@ -8,4 +8,22 @@
     task_status.is_read_only as task_status_is_read_only,
     task_status.remarks as task_status_remarks
   </sql>
+
+  <resultMap id="taskStatusResultMap" type="org.ymmy.todo_chat.db.entity.TaskStatus">
+    <result property="id" column="task_status_id" />
+    <result property="name" column="task_status_name" />
+    <result property="colorCode" column="task_status_color_code" />
+    <result property="isReadOnly" column="task_status_is_read_only" />
+    <result property="remarks" column="task_status_remarks" />
+  </resultMap>
+
+  <select id="selectByName" resultMap="taskStatusResultMap">
+    SELECT
+      <include refid="TaskStatusColumns"/>
+    FROM
+      task_status
+    WHERE
+      name LIKE CONCAT('%', #{name}, '%')
+    LIMIT 1;
+  </select>
 </mapper>
