@@ -60,7 +60,23 @@ public class LangChain4jService {
     retrieverToDescription.put( //
         generateContentRetriever(embeddingModel,
             documentConfig.getDocumentPath() + "/manualRevision/createTask.txt"),
-        "To create a task");
+        "About creating a task");
+    retrieverToDescription.put( //
+        generateContentRetriever(embeddingModel,
+            documentConfig.getDocumentPath() + "manualRevision/home.txt"),
+        "About the home screen");
+    retrieverToDescription.put( //
+        generateContentRetriever(embeddingModel,
+            documentConfig.getDocumentPath() + "manualRevision/LoginAndLogout.txt"),
+        "About login and logout");
+    retrieverToDescription.put( //
+        generateContentRetriever(embeddingModel,
+            documentConfig.getDocumentPath() + "manualRevision/task.txt"),
+        "About tasks");
+    retrieverToDescription.put( //
+        generateContentRetriever(embeddingModel,
+            documentConfig.getDocumentPath() + "manualRevision/taskList.txt"),
+        "About the task list screen and task search");
     final var queryRouter = new LanguageModelQueryRouter(chatLanguageModel, retrieverToDescription);
     final var retrievalAugmentor = DefaultRetrievalAugmentor.builder()
         .queryRouter(queryRouter)
@@ -102,7 +118,7 @@ public class LangChain4jService {
 
   private MessageWindowChatMemory initializeChatMemory(final Object memoryId) {
     final var commentList = commentRepository.selectByThreadId((Long) memoryId);
-    final var chatMemory = MessageWindowChatMemory.withMaxMessages(20);
+    final var chatMemory = MessageWindowChatMemory.withMaxMessages(10);
 
     commentList.forEach(comment -> chatMemory.add(getChatMessage(comment)));
 
