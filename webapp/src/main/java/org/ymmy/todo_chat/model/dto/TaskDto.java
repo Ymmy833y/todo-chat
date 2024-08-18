@@ -21,4 +21,15 @@ public class TaskDto implements Serializable {
   private LocalDateTime endDateTime;
   private Long createdBy;
 
+  @Override
+  public String toString() {
+    return "Task { " +
+        "taskId = \"" + taskId + "\"," +
+        "statusId = \"" + taskStatusDto.getStatusId() + "\"," +
+        "title = \"" + title + "\"," +
+        "startDateTime = \"" + startDateTime + "\"," +
+        "endDateTime = \"" + endDateTime + "\"," +
+        "description = \"" + description + "\"," +
+        " }";
+  }
 }

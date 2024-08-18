@@ -9,6 +9,7 @@ import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.exception.NotFoundException;
 import org.ymmy.todo_chat.logic.LoginUserLogic;
 import org.ymmy.todo_chat.logic.TaskLogic;
+import org.ymmy.todo_chat.model.dto.TaskDto;
 import org.ymmy.todo_chat.repository.TaskRepository;
 import org.ymmy.todo_chat.repository.TaskStatusRepository;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
@@ -44,6 +45,16 @@ public class TaskTool {
     taskRepository.insert(task, userId);
 
     return title;
+  }
+
+  @Tool("""
+      指定したタスクの詳細情報を取得する
+      """)
+  TaskDto getTask(
+      @P("task id") Long taskId
+  ) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
+    return taskLogic.getTaskDto(taskId, userId);
   }
 
   @Tool("""
