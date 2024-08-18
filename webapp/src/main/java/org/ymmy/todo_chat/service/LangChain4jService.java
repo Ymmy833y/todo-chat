@@ -55,27 +55,35 @@ public class LangChain4jService {
     final var retrieverToDescription = new HashMap<ContentRetriever, String>();
     retrieverToDescription.put( //
         generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manualRevision/assistant.txt"),
+            documentConfig.getDocumentPath() + "/manual/assistant.txt"),
         "AI Assistant Explained");
     retrieverToDescription.put( //
         generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manualRevision/createTask.txt"),
+            documentConfig.getDocumentPath() + "/manual/comment.txt"),
+        "About comments");
+    retrieverToDescription.put( //
+        generateContentRetriever(embeddingModel,
+            documentConfig.getDocumentPath() + "/manual/createTask.txt"),
         "About creating a task");
     retrieverToDescription.put( //
         generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "manualRevision/home.txt"),
+            documentConfig.getDocumentPath() + "/manual/home.txt"),
         "About the home screen");
     retrieverToDescription.put( //
         generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "manualRevision/LoginAndLogout.txt"),
+            documentConfig.getDocumentPath() + "/manual/loginAndLogout.txt"),
         "About login and logout");
     retrieverToDescription.put( //
         generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "manualRevision/task.txt"),
+            documentConfig.getDocumentPath() + "/manual/task.txt"),
         "About tasks");
     retrieverToDescription.put( //
         generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "manualRevision/taskList.txt"),
+            documentConfig.getDocumentPath() + "/manual/taskDetail.txt"),
+        "Editing and Deleting Tasks on the Task Details screen");
+    retrieverToDescription.put( //
+        generateContentRetriever(embeddingModel,
+            documentConfig.getDocumentPath() + "/manual/taskList.txt"),
         "About the task list screen and task search");
     final var queryRouter = new LanguageModelQueryRouter(chatLanguageModel, retrieverToDescription);
     final var retrievalAugmentor = DefaultRetrievalAugmentor.builder()
