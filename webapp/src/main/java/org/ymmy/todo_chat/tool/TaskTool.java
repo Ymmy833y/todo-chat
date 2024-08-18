@@ -63,6 +63,21 @@ public class TaskTool {
   }
 
   @Tool("""
+      指定したタスクを削除する
+      """)
+  String removeTask(
+      @P("task id") Long taskId
+  ) {
+    final var userId = loginUserLogic.getUserDetails().getUserId();
+    final var dto = taskLogic.getTaskDto(taskId, userId);
+    final var task = new Task() //
+        .withId(dto.getTaskId());
+    taskRepository.delete(task);
+    
+    return String.format("「%s」を削除しました", dto.getTitle());
+  }
+
+  @Tool("""
       タスクのタイトルからタスクIDを取得する
       """)
   Long getTaskIdForTitle(final String title) {
