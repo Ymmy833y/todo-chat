@@ -2,6 +2,7 @@ package org.ymmy.todo_chat.tool;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.ymmy.todo_chat.db.entity.Task;
@@ -46,17 +47,30 @@ public class TaskTool {
   }
 
   @Tool("""
-      指定したタスクのステータスを指定したステータスに変更する
+      指定したタスクを更新する
       """)
-  String updateTaskStatus(
-      @P("task Id") Long taskId,
-      @P("status id") Long statusId
+  String updateTask(
+      @P("task id") Long taskId,
+      @P(value = "Task title", required = false) final String title,
+      @P(value = "status id", required = false) Long statusId,
+      @P(value = "Task start deadline", required = false) final String startDateTime,
+      @P(value = "Task deadline", required = false) final String endDataTime,
+      @P(value = "Task Description", required = false) final String description
   ) {
     final var userId = loginUserLogic.getUserDetails().getUserId();
     final var dto = taskLogic.getTaskDto(taskId, userId);
     final var task = new Task() //
         .withId(dto.getTaskId()) //
-        .withStatusId(statusId);
+        .withTitle(Optional.ofNullable(title).orElse(dto.getTitle())) //
+        .withStatusId(Optional.ofNullable(statusId).orElse(dto.getTaskStatusDto().getStatusId())) //
+        .withStartDateTime(Optional.ofNullable(startDateTime)
+            .map(dateTool::convertToLocalDateTime)
+            .orElse(dto.getStartDateTime())) //
+        .withEndDateTime(Optional.ofNullable(endDataTime)
+            .map(dateTool::convertToLocalDateTime)
+            .orElse(dto.getEndDateTime())) //
+        .withDescription(Optional.ofNullable(description).orElse(dto.getDescription()));
+
     taskRepository.update(task, userId);
 
     return String.format("「%s」を更新しました", dto.getTitle());
@@ -73,7 +87,7 @@ public class TaskTool {
     final var task = new Task() //
         .withId(dto.getTaskId());
     taskRepository.delete(task);
-    
+
     return String.format("「%s」を削除しました", dto.getTitle());
   }
 
