@@ -36,9 +36,7 @@
           <div class="w-75">
             <div class="card" th:id="${'comment_' + commentDto.id}"
                  th:classappend="${commentDto.status == 100} ? 'unconfirmed-user' : ''">
-              <div class="card-body">
-                <span class="card-text" th:text="${commentDto.comment}"></span>
-              </div>
+              <div class="card-body comment" th:text="${commentDto.comment}"></div>
             </div>
             <div class="py-0"
                  th:classappend="${commentDto.createdBy == 0} ? 'text-start' : 'text-end'">
@@ -65,11 +63,21 @@
   <script th:src="@{/js/message.js}"></script>
   <script th:inline="javascript">
     /*<![CDATA[*/
+    const convertMD2HTML = (query) => {
+      $(query).each(function() {
+        $(this).html(marked.parse($(this).html()));
+      });
+      hljs.highlightAll();
+    }
     const threadId = [[${commentDetailDto.threadId}]];
     const isShowMessage = /*[[${isShowMessage}]]*/ false;
-    if (isShowMessage) {
-      showMessage(isShowMessage);
-    }
+
+    $(document).ready(function() {
+      if (isShowMessage) {
+        showMessage(isShowMessage);
+      }
+      convertMD2HTML(".comment");
+    });
     /*]]>*/
   </script>
 </div>
