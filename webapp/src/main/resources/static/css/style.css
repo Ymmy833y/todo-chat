@@ -19,3 +19,74 @@ th.table-min-width, td.table-min-width {
 .unconfirmed-user {
   background-color: honeydew;
 }
+
+.comment p {
+  margin-bottom: 0;
+}
+
+.comment h1 {
+  font-size: 2em;
+}
+
+.comment h2 {
+  font-size: 1.8em;
+}
+
+.comment h3 {
+  font-size: 1.6em;
+}
+
+.comment h4 {
+  font-size: 1.4em;
+}
+
+.comment h5 {
+  font-size: 1.2em;
+}
+
+.comment ol, .comment ul {
+  padding-left: 1rem;
+}
+
+.comment li {
+  margin-bottom: 0.5em;
+}
+
+.comment blockquote {
+  padding-left: 6px;
+  border-left: 4px solid #777777;
+}
+
+.comment table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.comment table th,
+.comment table td {
+  padding: 1vmin;
+  border: solid 1px #777777;
+  word-break: break-all;
+}
+
+.comment table tbody tr:hover {
+  opacity: 0.75;
+}
+
+.comment img {
+  width: 100%;
+}
+
+.comment a {
+  word-break: break-all;
+}
+
+.comment pre {
+  white-space: pre-wrap;
+}
+
+.comment pre,
+.comment pre code,
+.comment pre code span {
+  word-break: break-all;
+}

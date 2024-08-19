@@ -36,9 +36,7 @@ function createComment(comment) {
   newComment.innerHTML = `
     <div class="w-75">
       <div id="comment_${comment.id}" class="card ${comment.status == '100' ? 'unconfirmed-user' : ''}">
-        <div class="card-body">
-          <span class="card-text pre-wrap">${comment.comment}</span>
-        </div>
+        <div class="card-body comment">${comment.comment}</div>
       </div>
       <div class="py-0 ${comment.createdBy == 0 ? 'text-start' : 'text-end'}">
         <small>${formatDateTime(comment.createdAt)}</small>
@@ -46,6 +44,7 @@ function createComment(comment) {
     </div>
   `;
   messageContent.querySelector(".toast-body").appendChild(newComment);
+  convertMD2HTML(".comment");
   showMessage(comment.id);
 }
 
