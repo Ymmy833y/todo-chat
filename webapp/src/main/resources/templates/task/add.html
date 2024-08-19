@@ -5,10 +5,12 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>Todo x Chat | Add</title>
   <link crossorigin="anonymous" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
-        rel="stylesheet"
-        th:href="@{/css/bootstrap.min.css}">
+        rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/classic-light.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+  <script th:src="@{/js/highlight.min.js}"></script>
+  <script th:src="@{/js/marked.min.js}"></script>
 </head>
 <body>
 <th:block th:include="fragments/header::header (currentUrl=${taskCreateDetailDto.currentUrl})"/>
