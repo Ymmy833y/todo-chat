@@ -7,9 +7,11 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.http.client.jdk.JdkHttpClient;
+import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.embedding.bge.small.en.v15.BgeSmallEnV15EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
@@ -18,6 +20,7 @@ import dev.langchain4j.rag.query.router.LanguageModelQueryRouter;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import java.net.http.HttpClient;
 import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,81 +39,87 @@ public class LangChain4jService {
   private final CommentRepository commentRepository;
 
   public LangChain4jService(
-      @Value("${openai.apikey}") final String apiKey, //
-      @Value("${openai.model}") final String model,
-      final DocumentConfig documentConfig,
-      final CommentRepository commentRepository,
-      final TaskTool taskTool,
-      final DateTool dateTool
+    @Value("${openai.apikey}") final String apiKey, //
+    @Value("${openai.model}") final String model,
+    final DocumentConfig documentConfig,
+    final CommentRepository commentRepository,
+    final TaskTool taskTool,
+    final DateTool dateTool
   ) {
 
     this.commentRepository = commentRepository;
 
-    final var chatLanguageModel = OpenAiChatModel.builder() //
-        .apiKey(apiKey) //
-        .modelName(model) //
-        .build();
+    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
 
-    final var embeddingModel = new BgeSmallEnV15EmbeddingModel();
+    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
+      .httpClientBuilder(httpClientBuilder);
+
+    final var chatLanguageModel = OpenAiChatModel.builder() //
+      .apiKey(apiKey) //
+      .modelName(model) //
+      .httpClientBuilder(jdkHttpClientBuilder)
+      .build();
+
+    final var embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
     final var retrieverToDescription = new HashMap<ContentRetriever, String>();
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/assistant.txt"),
-        "AI Assistant Explained");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/assistant.txt"),
+      "AI Assistant Explained");
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/comment.txt"),
-        "About comments");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/comment.txt"),
+      "About comments");
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/createTask.txt"),
-        "About creating a task");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/createTask.txt"),
+      "About creating a task");
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/home.txt"),
-        "About the home screen");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/home.txt"),
+      "About the home screen");
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/loginAndLogout.txt"),
-        "About login and logout");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/loginAndLogout.txt"),
+      "About login and logout");
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/task.txt"),
-        "About tasks");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/task.txt"),
+      "About tasks");
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/taskDetail.txt"),
-        "Editing and Deleting Tasks on the Task Details screen");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/taskDetail.txt"),
+      "Editing and Deleting Tasks on the Task Details screen");
     retrieverToDescription.put( //
-        generateContentRetriever(embeddingModel,
-            documentConfig.getDocumentPath() + "/manual/taskList.txt"),
-        "About the task list screen and task search");
+      generateContentRetriever(embeddingModel,
+        documentConfig.getDocumentPath() + "/manual/taskList.txt"),
+      "About the task list screen and task search");
     final var queryRouter = new LanguageModelQueryRouter(chatLanguageModel, retrieverToDescription);
     final var retrievalAugmentor = DefaultRetrievalAugmentor.builder()
-        .queryRouter(queryRouter)
-        .build();
+      .queryRouter(queryRouter)
+      .build();
 
     this.assistant = AiServices.builder(Assistant.class) //
-        .chatLanguageModel(chatLanguageModel) //
-        .retrievalAugmentor(retrievalAugmentor) //
-        .tools(taskTool, dateTool) //
-        .chatMemoryProvider(this::initializeChatMemory) //
-        .build();
+      .chatModel(chatLanguageModel) //
+      .retrievalAugmentor(retrievalAugmentor) //
+      .tools(taskTool, dateTool) //
+      .chatMemoryProvider(this::initializeChatMemory) //
+      .build();
   }
 
   private ContentRetriever generateContentRetriever(final EmbeddingModel embeddingModel,
-      final String documentPath) {
+    final String documentPath) {
     final var biographyEmbeddingStore = embed(documentPath, embeddingModel);
     return EmbeddingStoreContentRetriever.builder()
-        .embeddingStore(biographyEmbeddingStore)
-        .embeddingModel(embeddingModel)
-        .maxResults(2)
-        .minScore(0.6)
-        .build();
+      .embeddingStore(biographyEmbeddingStore)
+      .embeddingModel(embeddingModel)
+      .maxResults(2)
+      .minScore(0.6)
+      .build();
   }
 
   private static EmbeddingStore<TextSegment> embed(final String documentPath,
-      EmbeddingModel embeddingModel) {
+    EmbeddingModel embeddingModel) {
     final var documentParser = new TextDocumentParser();
     final var document = FileSystemDocumentLoader.loadDocument(documentPath, documentParser);
 
