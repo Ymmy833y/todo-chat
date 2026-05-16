@@ -41,3 +41,5 @@ format/
 ### yml ###
 **/src/**/application-test.yml
 **/src/**/application.yml
+
+.playwright-mcp/
