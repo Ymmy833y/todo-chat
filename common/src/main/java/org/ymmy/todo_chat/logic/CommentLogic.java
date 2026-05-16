@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.ymmy.todo_chat.db.entity.Comment;
 import org.ymmy.todo_chat.model.dto.CommentDetailDto;
 import org.ymmy.todo_chat.model.dto.CommentDto;
-import org.ymmy.todo_chat.model.form.CommentForm;
 import org.ymmy.todo_chat.repository.CommentRepository;
 import org.ymmy.todo_chat.util.CommentStatusEnum;
 
@@ -19,8 +18,6 @@ public class CommentLogic {
   public CommentDetailDto getCommentDetailDto(final Long threadId) {
     final var commentList = commentRepository.selectByThreadId(threadId);
     final var commentDtoList = commentList.stream().map(CommentDto::new).toList();
-    final var commentForm = new CommentForm();
-    commentForm.setThreadId(threadId);
 
     return CommentDetailDto.builder() //
         .commentDtoList(commentDtoList) //

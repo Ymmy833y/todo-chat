@@ -23,9 +23,10 @@ import org.ymmy.todo_chat.db.entity.Task;
 import org.ymmy.todo_chat.db.entity.TaskStatus;
 import org.ymmy.todo_chat.model.dto.TaskSearchDto;
 import org.ymmy.todo_chat.model.entity.TaskEntity;
+import org.ymmy.todo_chat.testsupport.CommonTestApplication;
 import org.ymmy.todo_chat.utils.DatabaseUtils;
 
-@SpringBootTest
+@SpringBootTest(classes = CommonTestApplication.class)
 @ActiveProfiles("test")
 public class TaskRepositoryTest {
 
@@ -75,7 +76,7 @@ public class TaskRepositoryTest {
         .end() //
         .build();
 
-    DatabaseUtils.executeSqlFile(dataSource, "src/test/resources/db/deleteAll.sql");
+    DatabaseUtils.executeSqlFile(dataSource, "db/deleteAll.sql");
     final var dbSetup = new DbSetup(new DataSourceDestination(dataSource),
         sequenceOf(taskOperation));
     dbSetup.launch();
