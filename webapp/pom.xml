@@ -109,10 +109,10 @@
       <version>4.0.1</version>
     </dependency>
 
-    <!-- Flyway MySQL -->
+    <!-- Flyway MySQL (Spring Boot 4 requires the starter to enable auto-configuration) -->
     <dependency>
-      <artifactId>flyway-core</artifactId>
-      <groupId>org.flywaydb</groupId>
+      <artifactId>spring-boot-starter-flyway</artifactId>
+      <groupId>org.springframework.boot</groupId>
     </dependency>
     <dependency>
       <artifactId>flyway-mysql</artifactId>
