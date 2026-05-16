@@ -141,7 +141,7 @@ public class TaskListControllerIT {
         .end() //
         .build();
 
-    DatabaseUtils.executeSqlFile(dataSource, "src/test/resources/db/deleteAll.sql");
+    DatabaseUtils.executeSqlFile(dataSource, "db/deleteAll.sql");
     final var dbSetup = new DbSetup(new DataSourceDestination(dataSource),
         sequenceOf(userOperation, taskOperation));
     dbSetup.launch();

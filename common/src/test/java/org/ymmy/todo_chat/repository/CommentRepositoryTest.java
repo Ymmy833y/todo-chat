@@ -18,10 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.ymmy.todo_chat.db.entity.Comment;
+import org.ymmy.todo_chat.testsupport.CommonTestApplication;
 import org.ymmy.todo_chat.util.CommentStatusEnum;
 import org.ymmy.todo_chat.utils.DatabaseUtils;
 
-@SpringBootTest
+@SpringBootTest(classes = CommonTestApplication.class)
 @ActiveProfiles("test")
 public class CommentRepositoryTest {
 
@@ -53,7 +54,7 @@ public class CommentRepositoryTest {
         .end() //
         .build();
 
-    DatabaseUtils.executeSqlFile(dataSource, "src/test/resources/db/deleteAll.sql");
+    DatabaseUtils.executeSqlFile(dataSource, "db/deleteAll.sql");
     final var dbSetup = new DbSetup(new DataSourceDestination(dataSource),
         sequenceOf(commentOperation));
     dbSetup.launch();

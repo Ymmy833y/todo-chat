@@ -47,7 +47,7 @@ public class CommentControllerIT {
   @BeforeEach
   void setUp() throws Exception {
 
-    DatabaseUtils.executeSqlFile(dataSource, "src/test/resources/db/deleteAll.sql");
+    DatabaseUtils.executeSqlFile(dataSource, "db/deleteAll.sql");
 
     final var commentOperation = Operations.insertInto("comment")
         .withGeneratedValue("id", ValueGenerators.sequence().startingAt(1))

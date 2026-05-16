@@ -34,7 +34,7 @@ public class LoginControllerIT {
 
   @BeforeEach
   void setUp() throws Exception {
-    DatabaseUtils.executeSqlFile(dataSource, "src/test/resources/db/deleteAll.sql");
+    DatabaseUtils.executeSqlFile(dataSource, "db/deleteAll.sql");
   }
 
   @Nested

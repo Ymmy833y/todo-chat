@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.assertj.core.util.VisibleForTesting;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ymmy.todo_chat.db.entity.Task;
@@ -264,7 +263,6 @@ public class TaskService {
    * @param current 表示位置
    * @return {@link PaginationDto}
    */
-  @VisibleForTesting
   PaginationDto generatePaginationDto(final Long total, final Long split,
       final Long current) {
     final var pageList = new HashMap<Long, Boolean>();

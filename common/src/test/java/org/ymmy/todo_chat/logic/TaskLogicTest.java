@@ -21,9 +21,10 @@ import org.ymmy.todo_chat.db.entity.TaskStatus;
 import org.ymmy.todo_chat.exception.NotFoundException;
 import org.ymmy.todo_chat.model.entity.TaskEntity;
 import org.ymmy.todo_chat.repository.TaskRepository;
+import org.ymmy.todo_chat.testsupport.CommonTestApplication;
 import org.ymmy.todo_chat.util.ErrorMessageEnum;
 
-@SpringBootTest
+@SpringBootTest(classes = CommonTestApplication.class)
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

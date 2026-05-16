@@ -64,7 +64,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/webapp/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
@@ -78,10 +78,10 @@ jobs:
           echo "OPENAI_APIKEY=apikey" >> $GITHUB_ENV
           echo "OPENAI_MODEL=model" >> $GITHUB_ENV
 
+      # マルチモジュール (common / webapp / mcp-server) はルート親 pom からビルドする。
+      # package は -DskipTests で実行し、テストは次ステップで一度だけ走らせる。
       - name: Build with Maven
-        run: mvn -B package --file pom.xml -Dapp.version=${{ env.APP_VERSION }}
-        working-directory: ./webapp
+        run: mvn -B package -DskipTests -Dapp.version=${{ env.APP_VERSION }}
 
       - name: Run tests with Maven
         run: mvn test -Dapp.version=${{ env.APP_VERSION }}
-        working-directory: ./webapp
