@@ -1,17 +1,20 @@
 package org.ymmy.todo_chat.mcp.tool;
 
-import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
-import io.modelcontextprotocol.spec.McpSchema.ElicitRequest;
-import io.modelcontextprotocol.spec.McpSchema.ElicitResult;
+import io.modelcontextprotocol.spec.McpSchema.ElicitResult.Action;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.annotation.ToolParam;
+
+import org.springframework.ai.mcp.annotation.McpTool;
+import org.springframework.ai.mcp.annotation.McpToolParam;
+import org.springframework.ai.mcp.annotation.context.McpSyncRequestContext;
 import org.springframework.stereotype.Component;
+import org.ymmy.todo_chat.exception.BadRequestException;
 import org.ymmy.todo_chat.mcp.service.McpTaskService;
+import org.ymmy.todo_chat.util.ErrorMessageEnum;
 import org.ymmy.todo_chat.mcp.tool.dto.DeleteTaskResult;
 import org.ymmy.todo_chat.mcp.tool.dto.TaskDetail;
 import org.ymmy.todo_chat.mcp.tool.dto.TaskStatusSummary;
@@ -19,7 +22,7 @@ import org.ymmy.todo_chat.model.dto.TaskCreateDto;
 import org.ymmy.todo_chat.model.dto.TaskEditDto;
 
 /**
- * MCP @Tool エンドポイント。{@link McpTaskService} に処理を委譲し、
+ * MCP @McpTool エンドポイント。{@link McpTaskService} に処理を委譲し、
  * {@code search_tasks} / {@code create_task} は {@link CallToolResult} を組み立て、
  * {@code delete_task} は Elicitation でユーザに削除確認を求める。
  */
@@ -27,27 +30,23 @@ import org.ymmy.todo_chat.model.dto.TaskEditDto;
 @RequiredArgsConstructor
 public class TaskTools {
 
-  /** Elicitation で追加データを取らないことを示す空オブジェクトスキーマ。 */
-  private static final Map<String, Object> EMPTY_OBJECT_SCHEMA =
-      Map.of("type", "object", "properties", Map.of());
-
   private final McpTaskService mcpTaskService;
 
-  @Tool(name = "search_tasks", description = """
+  @McpTool(name = "search_tasks", description = """
       現在のユーザに紐づくタスクを条件検索します。タイトル部分一致、含めるステータスID群、
       除外するステータスID群、開始/終了日時の範囲でフィルタでき、ページネーション可能です。
       ステータスIDが未知の場合はエラーになるので、未知の場合は list_task_statuses を先に呼んでください。
       日時は ISO-8601 形式 (例: 2026-05-20T09:00:00) で指定してください。""")
   public CallToolResult searchTasks(
-      @ToolParam(description = "タイトル部分一致 (LIKE)", required = false) final String title,
-      @ToolParam(description = "含めるステータスID (例: [1, 2])", required = false) final List<Long> includeStatusIds,
-      @ToolParam(description = "除外するステータスID", required = false) final List<Long> excludedStatusIds,
-      @ToolParam(description = "開始日時の下限 (ISO-8601)", required = false) final LocalDateTime startDateTimeFrom,
-      @ToolParam(description = "開始日時の上限 (ISO-8601)", required = false) final LocalDateTime startDateTimeTo,
-      @ToolParam(description = "終了日時の下限 (ISO-8601)", required = false) final LocalDateTime endDateTimeFrom,
-      @ToolParam(description = "終了日時の上限 (ISO-8601)", required = false) final LocalDateTime endDateTimeTo,
-      @ToolParam(description = "ページ番号 (1 始まり、未指定なら 1)", required = false) final Long page,
-      @ToolParam(description = "1 ページの件数 (未指定なら 10)", required = false) final Long pageSize) {
+      @McpToolParam(description = "タイトル部分一致 (LIKE)", required = false) final String title,
+      @McpToolParam(description = "含めるステータスID (例: [1, 2])", required = false) final List<Long> includeStatusIds,
+      @McpToolParam(description = "除外するステータスID", required = false) final List<Long> excludedStatusIds,
+      @McpToolParam(description = "開始日時の下限 (ISO-8601)", required = false) final LocalDateTime startDateTimeFrom,
+      @McpToolParam(description = "開始日時の上限 (ISO-8601)", required = false) final LocalDateTime startDateTimeTo,
+      @McpToolParam(description = "終了日時の下限 (ISO-8601)", required = false) final LocalDateTime endDateTimeFrom,
+      @McpToolParam(description = "終了日時の上限 (ISO-8601)", required = false) final LocalDateTime endDateTimeTo,
+      @McpToolParam(description = "ページ番号 (1 始まり、未指定なら 1)", required = false) final Long page,
+      @McpToolParam(description = "1 ページの件数 (未指定なら 10)", required = false) final Long pageSize) {
 
     final var actualPage = page == null ? 1L : page;
     final var actualPageSize = pageSize == null ? 10L : pageSize;
@@ -65,20 +64,20 @@ public class TaskTools {
         .build();
   }
 
-  @Tool(name = "get_task", description = "タスクIDを指定して、タスクの詳細 (description 含む) を取得します。")
+  @McpTool(name = "get_task", description = "タスクIDを指定して、タスクの詳細 (description 含む) を取得します。")
   public TaskDetail getTask(
-      @ToolParam(description = "取得するタスクのID") final Long taskId) {
+      @McpToolParam(description = "取得するタスクのID") final Long taskId) {
     return mcpTaskService.getTaskDetail(taskId);
   }
 
-  @Tool(name = "create_task", description = """
+  @McpTool(name = "create_task", description = """
       新しいタスクを登録します。開始日時は終了日時より前である必要があります。日時は ISO-8601 形式
       (例: 2026-05-20T09:00:00) で指定してください。""")
   public CallToolResult createTask(
-      @ToolParam(description = "タスクのタイトル") final String title,
-      @ToolParam(description = "開始日時 (ISO-8601)") final LocalDateTime startDateTime,
-      @ToolParam(description = "終了日時 (ISO-8601)") final LocalDateTime endDateTime,
-      @ToolParam(description = "タスクの説明", required = false) final String description) {
+      @McpToolParam(description = "タスクのタイトル") final String title,
+      @McpToolParam(description = "開始日時 (ISO-8601)") final LocalDateTime startDateTime,
+      @McpToolParam(description = "終了日時 (ISO-8601)") final LocalDateTime endDateTime,
+      @McpToolParam(description = "タスクの説明", required = false) final String description) {
 
     final var dto = TaskCreateDto.builder() //
         .title(title) //
@@ -98,16 +97,16 @@ public class TaskTools {
         .build();
   }
 
-  @Tool(name = "update_task", description = """
+  @McpTool(name = "update_task", description = """
       既存のタスクを更新します。statusId に 3 を指定すると完了扱いとなり、完了コメントが記録されます。
       他ユーザのタスクは更新できません。""")
   public TaskDetail updateTask(
-      @ToolParam(description = "更新対象のタスクID") final Long taskId,
-      @ToolParam(description = "ステータスID (3=完了)") final Long statusId,
-      @ToolParam(description = "タスクのタイトル") final String title,
-      @ToolParam(description = "開始日時 (ISO-8601)") final LocalDateTime startDateTime,
-      @ToolParam(description = "終了日時 (ISO-8601)") final LocalDateTime endDateTime,
-      @ToolParam(description = "タスクの説明", required = false) final String description) {
+      @McpToolParam(description = "更新対象のタスクID") final Long taskId,
+      @McpToolParam(description = "ステータスID (3=完了)") final Long statusId,
+      @McpToolParam(description = "タスクのタイトル") final String title,
+      @McpToolParam(description = "開始日時 (ISO-8601)") final LocalDateTime startDateTime,
+      @McpToolParam(description = "終了日時 (ISO-8601)") final LocalDateTime endDateTime,
+      @McpToolParam(description = "タスクの説明", required = false) final String description) {
 
     final var dto = TaskEditDto.builder() //
         .taskId(taskId) //
@@ -120,22 +119,27 @@ public class TaskTools {
     return mcpTaskService.updateTask(dto);
   }
 
-  @Tool(name = "delete_task", description = """
+  public record ApprovalInput(boolean confirmed) {}
+
+  @McpTool(name = "delete_task", description = """
       タスクを削除します。実行前にユーザへ削除確認 (Elicitation) を求め、承認された場合のみ削除します。
       ユーザに拒否された場合は deleted=false が返ります。""")
   public DeleteTaskResult deleteTask(
-      final McpSyncServerExchange exchange,
-      @ToolParam(description = "削除対象のタスクID") final Long taskId) {
+      final McpSyncRequestContext context,
+      @McpToolParam(description = "削除対象のタスクID") final Long taskId) {
+
+    if (!context.elicitEnabled()) {
+      throw new BadRequestException(ErrorMessageEnum.ELICITATION_NOT_SUPPORTED);
+    }
 
     final var taskDto = mcpTaskService.verifyForDelete(taskId);
 
-    final var elicit = ElicitRequest.builder() //
-        .message(String.format("タスク「%s」を削除します。よろしいですか?", taskDto.getTitle())) //
-        .requestedSchema(EMPTY_OBJECT_SCHEMA) //
-        .build();
-    final var elicitResult = exchange.createElicitation(elicit);
+    final var elicitResult = context.elicit(
+        spec -> spec.message(String.format("タスク「%s」を削除します。よろしいですか?", taskDto.getTitle())),
+        ApprovalInput.class
+    );
 
-    if (elicitResult.action() != ElicitResult.Action.ACCEPT) {
+    if (elicitResult.action() != Action.ACCEPT || !elicitResult.structuredContent().confirmed()) {
       return new DeleteTaskResult(taskId, false, "user_declined");
     }
 
@@ -143,12 +147,12 @@ public class TaskTools {
     return new DeleteTaskResult(taskId, true, null);
   }
 
-  @Tool(name = "list_task_statuses", description = """
+  @McpTool(name = "list_task_statuses", description = """
       タスクのステータス一覧を返します。デフォルトでは statusId / name / remarks のみ返します。
       colorCode や isReadOnly を含めたい場合は対応するフラグを true にしてください。""")
   public List<TaskStatusSummary> listTaskStatuses(
-      @ToolParam(description = "true にすると colorCode を含める", required = false) final Boolean includeColorCode,
-      @ToolParam(description = "true にすると isReadOnly を含める", required = false) final Boolean includeIsReadOnly) {
+      @McpToolParam(description = "true にすると colorCode を含める", required = false) final Boolean includeColorCode,
+      @McpToolParam(description = "true にすると isReadOnly を含める", required = false) final Boolean includeIsReadOnly) {
     return mcpTaskService.listStatuses( //
         Boolean.TRUE.equals(includeColorCode), //
         Boolean.TRUE.equals(includeIsReadOnly));

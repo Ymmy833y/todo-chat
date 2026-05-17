@@ -9,7 +9,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 /**
- * {@link org.springframework.ai.tool.annotation.Tool} アノテーションが付いた
+ * {@link org.springframework.ai.mcp.annotation.McpTool} アノテーションが付いた
  * メソッドの呼び出しをロギングする。
  * <p>
  * 開始時に引数を、終了時に戻り値と実行時間 (ms) を、例外時にはクラス名とメッセージ
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ToolLoggingAspect {
 
-  @Around("@annotation(org.springframework.ai.tool.annotation.Tool)")
+  @Around("@annotation(org.springframework.ai.mcp.annotation.McpTool)")
   public Object logToolInvocation(final ProceedingJoinPoint joinPoint) throws Throwable {
     final var signature = (MethodSignature) joinPoint.getSignature();
     final var location = signature.getDeclaringType().getSimpleName() + "." + signature.getName();
