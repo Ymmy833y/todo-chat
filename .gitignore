@@ -43,3 +43,6 @@ format/
 **/src/**/application.yml
 
 .playwright-mcp/
+
+### log ###
+log/

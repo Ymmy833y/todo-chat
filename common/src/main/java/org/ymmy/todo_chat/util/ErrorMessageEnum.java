@@ -11,7 +11,8 @@ public enum ErrorMessageEnum {
   INVALID_COMMENT_THREAD("有効なコメントスレッドではありません。"),
   NON_EXISTENT_DATA("存在しないデータです。"),
   NON_EXISTENT_STATUS("存在しないステータスです。"),
-  NOT_FOUND_USER("ユーザーが見つかりませんでした。");
+  NOT_FOUND_USER("ユーザーが見つかりませんでした。"),
+  ELICITATION_NOT_SUPPORTED("このクライアントは Elicitation に対応していないため、削除できません。");
 
   private final String message;
 }
