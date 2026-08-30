@@ -30,21 +30,21 @@
     </javaTypeResolver>
 
     <!-- Entityの生成場所 -->
-    <javaModelGenerator
+    <modelGenerator
       targetPackage="org.ymmy.todo_chat.db.entity"
-      targetProject="src/main/java/"
+      targetProject="${mybatis-generator.java-target}"
     >
       <property name="constructorBased" value="true"/>
-    </javaModelGenerator>
+    </modelGenerator>
     <!-- Mapper(xml)の生成場所 -->
     <sqlMapGenerator
       targetPackage="db.mapper"
-      targetProject="src/main/resources/"
+      targetProject="${mybatis-generator.resources-target}"
     />
     <!-- Mapper(java)の生成場所 -->
-    <javaClientGenerator
+    <clientGenerator
       targetPackage="org.ymmy.todo_chat.db.mapper"
-      targetProject="src/main/java/"
+      targetProject="${mybatis-generator.java-target}"
       type="XMLMAPPER"
     />
 

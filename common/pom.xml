@@ -16,6 +16,11 @@
   <name>todo-chat-common</name>
   <description>Shared library: DB entities, mappers, repositories, domain logic, DTOs.</description>
 
+  <properties>
+    <mybatis-generator.java-target>${project.basedir}/src/main/java</mybatis-generator.java-target>
+    <mybatis-generator.resources-target>${project.basedir}/src/main/resources</mybatis-generator.resources-target>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
